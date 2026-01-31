@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "stst_dev"
+version = "0.1.0"
+description = "A place for developer projects related to Skip the Small Talk"
+authors = ["Ellen <ellen.degenn@gmail.com>"]
+readme = "README.md"
+packages = [{include = "stst_dev"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+jupyter = "^1.0.0"
+numpy = "^1.26.3"
+seaborn = "^0.13.2"
+pandas = "^2.2.0"
+matplotlib = "^3.8.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
