@@ -8,26 +8,68 @@ vars:
 tasks:
   default:
     cmds:
-      - task: notebook
-  
+      - task: dashboard
+
   teardown:
-    desc: teardown virtual environment
+    desc: Teardown virtual environment
     cmds:
       - rm -rf .venv
-  
+
   install-poetry:
-    desc: install poetry venv
+    desc: Install poetry venv
     cmds:
       - poetry install
 
   notebook:
-    desc: open a jupyter notebook w/ poetry
+    desc: Open a jupyter notebook w/ poetry
     deps: [install-poetry]
     cmds:
       - poetry run jupyter notebook
-  
+
   clean:
-    desc: "Clean up cache files"
+    desc: Clean up cache files
     cmds:
       - 'find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf'
       - "rm -rf notebooks/.ipynb_checkpoints"
+
+  # New tasks for scraper and dashboard
+
+  refresh:
+    desc: Scrape website and update database
+    deps: [install-poetry]
+    cmds:
+      - poetry run python -m scripts.refresh_events
+
+  refresh-debug:
+    desc: Scrape website with browser visible (for debugging)
+    deps: [install-poetry]
+    cmds:
+      - poetry run python -m scripts.refresh_events --no-headless -v
+
+  dashboard:
+    desc: Launch Streamlit dashboard
+    deps: [install-poetry]
+    cmds:
+      - poetry run streamlit run dashboard/app.py
+
+  # Docker tasks
+
+  docker-build:
+    desc: Build Docker image
+    cmds:
+      - docker-compose build
+
+  docker-run:
+    desc: Run dashboard in Docker
+    cmds:
+      - docker-compose up
+
+  docker-refresh:
+    desc: Run scraper in Docker
+    cmds:
+      - docker-compose run --rm scraper
+
+  docker-down:
+    desc: Stop Docker containers
+    cmds:
+      - docker-compose down
