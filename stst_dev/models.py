@@ -18,6 +18,7 @@ class Event:
     sale_status: Optional[str] = None  # 'SALE', 'SOLD_OUT', or None
     link: str = ""
     city: Optional[str] = None
+    state: Optional[str] = None
     day_of_week: Optional[str] = None
 
     # Database fields (set when loaded from DB)
@@ -77,6 +78,7 @@ class Event:
             day_of_week=row.get("day_of_week"),
             location=row.get("location", ""),
             city=row.get("city"),
+            state=row.get("state"),
             tags=tags,
             is_dating=bool(row.get("is_dating", False)),
             sale_status=row.get("sale_status"),
@@ -97,6 +99,7 @@ class Event:
             "day_of_week": self.day_of_week,
             "location": self.location,
             "city": self.city,
+            "state": self.state,
             "tags": self.tags_json,
             "is_dating": self.is_dating,
             "sale_status": self.sale_status,

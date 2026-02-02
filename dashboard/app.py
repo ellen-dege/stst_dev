@@ -45,7 +45,9 @@ def events_to_dataframe(events) -> pd.DataFrame:
                 "Title": event.full_title,
                 "Date": event.date,
                 "Day": event.day_of_week,
-                "Location": event.location,
+                "Venue": event.location,
+                "City": event.city or "",
+                "State": event.state or "",
                 "Tags": ", ".join(tags) if tags else "",
                 "Dating": "Yes" if event.is_dating else "No",
                 "Status": event.sale_status or "",
@@ -63,7 +65,7 @@ def render_events_table(df: pd.DataFrame, show_link_column: bool = True) -> None
         return
 
     # Configure columns to display
-    display_cols = ["Title", "Date", "Day", "Location", "Tags", "Dating", "Status"]
+    display_cols = ["Title", "Date", "Day", "Venue", "City", "State", "Tags", "Dating", "Status"]
     if "Added" in df.columns:
         display_cols.append("Added")
 
@@ -76,7 +78,9 @@ def render_events_table(df: pd.DataFrame, show_link_column: bool = True) -> None
             "Title": st.column_config.TextColumn("Event Title", width="large"),
             "Date": st.column_config.TextColumn("Date", width="medium"),
             "Day": st.column_config.TextColumn("Day", width="small"),
-            "Location": st.column_config.TextColumn("Location", width="medium"),
+            "Venue": st.column_config.TextColumn("Venue", width="medium"),
+            "City": st.column_config.TextColumn("City", width="small"),
+            "State": st.column_config.TextColumn("State", width="small"),
             "Tags": st.column_config.TextColumn("Tags", width="medium"),
             "Dating": st.column_config.TextColumn("Dating", width="small"),
             "Status": st.column_config.TextColumn("Status", width="small"),
@@ -104,13 +108,17 @@ def page_upcoming_events():
         return
 
     # Filters
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        locations = ["All"] + sorted(df["Location"].unique().tolist())
-        selected_location = st.selectbox("Filter by Location", locations)
+        cities = ["All"] + sorted([c for c in df["City"].unique().tolist() if c])
+        selected_city = st.selectbox("Filter by City", cities)
 
     with col2:
+        states = ["All"] + sorted([s for s in df["State"].unique().tolist() if s])
+        selected_state = st.selectbox("Filter by State", states)
+
+    with col3:
         # Get unique tags
         all_tags = set()
         for tags_str in df["Tags"]:
@@ -120,14 +128,16 @@ def page_upcoming_events():
         tags_list = ["All"] + sorted(all_tags)
         selected_tag = st.selectbox("Filter by Tag", tags_list)
 
-    with col3:
+    with col4:
         dating_options = ["All", "Yes", "No"]
         selected_dating = st.selectbox("Dating Events", dating_options)
 
     # Apply filters
     filtered_df = df.copy()
-    if selected_location != "All":
-        filtered_df = filtered_df[filtered_df["Location"] == selected_location]
+    if selected_city != "All":
+        filtered_df = filtered_df[filtered_df["City"] == selected_city]
+    if selected_state != "All":
+        filtered_df = filtered_df[filtered_df["State"] == selected_state]
     if selected_tag != "All":
         filtered_df = filtered_df[filtered_df["Tags"].str.contains(selected_tag, na=False)]
     if selected_dating != "All":
@@ -184,16 +194,12 @@ def page_social_media_checklist():
     """Render the Social Media Checklist page."""
     st.header("Social Media Checklist")
 
-    # Get events with incomplete tasks
-    events_with_tasks = get_events_with_incomplete_tasks()
-
     # Filter options
     show_all = st.checkbox("Show all events (including completed)", value=False)
 
     if show_all:
         events = get_upcoming_events()
     else:
-        # Convert to Event-like objects for display
         events = get_upcoming_events()
         events = [e for e in events if any(
             not task.completed for task in get_social_media_tasks(e.id)
@@ -203,44 +209,66 @@ def page_social_media_checklist():
         st.success("All social media tasks are complete!")
         return
 
-    st.write(f"**{len(events)} events with pending tasks**")
+    st.write(f"**{len(events)} events**")
 
+    # Build dataframe with event info and task checkboxes
+    rows = []
     for event in events:
         tasks = get_social_media_tasks(event.id)
-        completed_count = sum(1 for t in tasks if t.completed)
-        total_count = len(tasks)
+        task_status = {t.task_type: t.completed for t in tasks}
 
-        # Progress indicator
-        progress = completed_count / total_count if total_count > 0 else 0
+        row = {
+            "ID": event.id,
+            "Title": event.full_title,
+            "Date": event.date,
+            "Day": event.day_of_week or "",
+            "Venue": event.location or "",
+            "City": event.city or "",
+            "State": event.state or "",
+            "Dating": "Y" if event.is_dating else "N",
+        }
+        # Add task columns
+        for task_type in SOCIAL_MEDIA_TASK_TYPES:
+            row[task_type] = task_status.get(task_type, False)
 
-        with st.expander(
-            f"{'✅' if progress == 1 else '⏳'} {event.full_title[:60]}... ({completed_count}/{total_count})"
-        ):
-            st.write(f"**Date:** {event.date}")
-            st.write(f"**Location:** {event.location}")
-            if event.link:
-                st.markdown(f"[View Event]({event.link})")
+        rows.append(row)
 
-            st.divider()
-            st.write("**Tasks:**")
+    df = pd.DataFrame(rows)
 
-            # Create checkboxes for each task
-            cols = st.columns(len(SOCIAL_MEDIA_TASK_TYPES))
-            for idx, task_type in enumerate(SOCIAL_MEDIA_TASK_TYPES):
-                task = next((t for t in tasks if t.task_type == task_type), None)
-                is_completed = task.completed if task else False
+    # Configure which columns are editable (only task checkboxes)
+    column_config = {
+        "ID": None,  # Hide ID column
+        "Title": st.column_config.TextColumn("Title", width="large", disabled=True),
+        "Date": st.column_config.TextColumn("Date", width="medium", disabled=True),
+        "Day": st.column_config.TextColumn("Day", width="small", disabled=True),
+        "Venue": st.column_config.TextColumn("Venue", width="medium", disabled=True),
+        "City": st.column_config.TextColumn("City", width="small", disabled=True),
+        "State": st.column_config.TextColumn("State", width="small", disabled=True),
+        "Dating": st.column_config.TextColumn("Dating", width="small", disabled=True),
+    }
+    for task_type in SOCIAL_MEDIA_TASK_TYPES:
+        column_config[task_type] = st.column_config.CheckboxColumn(
+            task_type, width="small"
+        )
 
-                with cols[idx]:
-                    new_value = st.checkbox(
-                        task_type.capitalize(),
-                        value=is_completed,
-                        key=f"task_{event.id}_{task_type}",
-                    )
+    # Display editable table
+    edited_df = st.data_editor(
+        df,
+        column_config=column_config,
+        use_container_width=True,
+        hide_index=True,
+        key="social_media_tasks_editor",
+    )
 
-                    # Update if changed
-                    if task and new_value != is_completed:
-                        mark_task_complete(event.id, task_type, new_value)
-                        st.rerun()
+    # Check for changes and update database
+    for idx, row in edited_df.iterrows():
+        event_id = df.iloc[idx]["ID"]
+        for task_type in SOCIAL_MEDIA_TASK_TYPES:
+            old_value = df.iloc[idx][task_type]
+            new_value = row[task_type]
+            if old_value != new_value:
+                mark_task_complete(event_id, task_type, new_value)
+                st.rerun()
 
 
 def page_stats():
@@ -260,13 +288,13 @@ def page_stats():
     col4.metric("On Sale", sale_events)
     col5.metric("Sold Out", sold_out_events)
 
-    # Events by location
-    st.subheader("Events by Location")
+    # Events by city
+    st.subheader("Events by City")
     events = get_upcoming_events()
     if events:
         df = events_to_dataframe(events)
-        location_counts = df["Location"].value_counts()
-        st.bar_chart(location_counts)
+        city_counts = df["City"].value_counts()
+        st.bar_chart(city_counts)
 
     # Events by date (timeline)
     st.subheader("Upcoming Events Timeline")

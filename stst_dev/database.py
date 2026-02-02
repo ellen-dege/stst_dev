@@ -5,8 +5,110 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-from .config import DATABASE_PATH, SOCIAL_MEDIA_TASK_TYPES
+from .config import DATABASE_PATH, SOCIAL_MEDIA_TASK_TYPES, VENUE_LOOKUP_PATH, CITY_STATE_LOOKUP_PATH
 from .models import Event, SocialMediaTask
+
+# Cache for lookup tables
+_venue_lookup_cache: Optional[dict[str, str]] = None
+_city_state_lookup_cache: Optional[dict[str, str]] = None
+
+
+def load_venue_lookup() -> dict[str, str]:
+    """Load the venue-to-city lookup table from CSV.
+
+    Returns:
+        Dictionary mapping venue names to city names.
+    """
+    global _venue_lookup_cache
+    if _venue_lookup_cache is not None:
+        return _venue_lookup_cache
+
+    _venue_lookup_cache = {}
+    if VENUE_LOOKUP_PATH.exists():
+        with open(VENUE_LOOKUP_PATH, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and "," in line:
+                    # Split on last comma to handle venue names with commas
+                    parts = line.rsplit(",", 1)
+                    if len(parts) == 2:
+                        venue, city = parts
+                        _venue_lookup_cache[venue.strip()] = city.strip()
+    return _venue_lookup_cache
+
+
+def lookup_city(location: str) -> Optional[str]:
+    """Look up the city for a given venue/location name.
+
+    Args:
+        location: Venue or location name from the event.
+
+    Returns:
+        City name if found in lookup table, None otherwise.
+    """
+    if not location:
+        return None
+    lookup = load_venue_lookup()
+    return lookup.get(location)
+
+
+def load_city_state_lookup() -> dict[str, str]:
+    """Load the city-to-state lookup table from CSV.
+
+    Returns:
+        Dictionary mapping city names to state abbreviations.
+    """
+    global _city_state_lookup_cache
+    if _city_state_lookup_cache is not None:
+        return _city_state_lookup_cache
+
+    _city_state_lookup_cache = {}
+    if CITY_STATE_LOOKUP_PATH.exists():
+        with open(CITY_STATE_LOOKUP_PATH, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and "," in line:
+                    parts = line.rsplit(",", 1)
+                    if len(parts) == 2:
+                        city, state = parts
+                        _city_state_lookup_cache[city.strip()] = state.strip()
+    return _city_state_lookup_cache
+
+
+def lookup_state(city: str) -> Optional[str]:
+    """Look up the state for a given city name.
+
+    Args:
+        city: City name (may include state disambiguator like "Portland (OR)").
+
+    Returns:
+        State abbreviation if found in lookup table, None otherwise.
+    """
+    if not city:
+        return None
+    lookup = load_city_state_lookup()
+    return lookup.get(city)
+
+
+def clean_city_name(city: str) -> str:
+    """Remove state disambiguator from city name for display.
+
+    Converts "Portland (OR)" to "Portland" while preserving the raw
+    form in lookup tables for state resolution.
+
+    Args:
+        city: City name, possibly with state disambiguator.
+
+    Returns:
+        Clean city name without parenthetical suffix.
+    """
+    if not city:
+        return city
+    # Remove parenthetical suffix like " (OR)" or " (ME)"
+    if " (" in city and city.endswith(")"):
+        return city.rsplit(" (", 1)[0]
+    return city
+
 
 # SQL statements for table creation
 CREATE_EVENTS_TABLE = """
@@ -17,6 +119,7 @@ CREATE TABLE IF NOT EXISTS events (
     day_of_week TEXT,
     location TEXT,
     city TEXT,
+    state TEXT,
     tags TEXT,
     is_dating BOOLEAN,
     sale_status TEXT,
@@ -74,6 +177,13 @@ def init_db(db_path: Optional[Path] = None) -> None:
         cursor.execute(CREATE_SOCIAL_MEDIA_TASKS_TABLE)
         for index_sql in CREATE_INDEXES:
             cursor.execute(index_sql)
+
+        # Migration: add state column if it doesn't exist
+        cursor.execute("PRAGMA table_info(events)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "state" not in columns:
+            cursor.execute("ALTER TABLE events ADD COLUMN state TEXT")
+
         conn.commit()
     finally:
         conn.close()
@@ -103,6 +213,19 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
         for event in events:
             data = event.to_db_dict()
 
+            # Look up city and state from venue if not already set
+            if not data.get("city") and data.get("location"):
+                raw_city = lookup_city(data["location"])
+                if raw_city:
+                    # Use raw city (with disambiguator) for state lookup
+                    if not data.get("state"):
+                        data["state"] = lookup_state(raw_city)
+                    # Store clean city name (without disambiguator like "(OR)")
+                    data["city"] = clean_city_name(raw_city)
+            elif not data.get("state") and data.get("city"):
+                # If city was already set, still try to look up state
+                data["state"] = lookup_state(data["city"])
+
             # Check if event already exists (by link)
             cursor.execute("SELECT id FROM events WHERE link = ?", (data["link"],))
             existing = cursor.fetchone()
@@ -113,7 +236,7 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                     """
                     UPDATE events
                     SET full_title = ?, date = ?, day_of_week = ?, location = ?,
-                        city = ?, tags = ?, is_dating = ?, sale_status = ?,
+                        city = ?, state = ?, tags = ?, is_dating = ?, sale_status = ?,
                         last_seen_at = ?
                     WHERE link = ?
                     """,
@@ -123,6 +246,7 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                         data["day_of_week"],
                         data["location"],
                         data["city"],
+                        data["state"],
                         data["tags"],
                         data["is_dating"],
                         data["sale_status"],
@@ -136,9 +260,9 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                 cursor.execute(
                     """
                     INSERT INTO events
-                    (full_title, date, day_of_week, location, city, tags,
+                    (full_title, date, day_of_week, location, city, state, tags,
                      is_dating, sale_status, link, first_seen_at, last_seen_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         data["full_title"],
@@ -146,6 +270,7 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                         data["day_of_week"],
                         data["location"],
                         data["city"],
+                        data["state"],
                         data["tags"],
                         data["is_dating"],
                         data["sale_status"],

@@ -6,6 +6,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 DATABASE_PATH = DATA_DIR / "events.db"
+VENUE_LOOKUP_PATH = DATA_DIR / "venue_loc_lut.csv"
+CITY_STATE_LOOKUP_PATH = DATA_DIR / "city_state_lut.csv"
 
 # Website configuration
 TARGET_URL = "https://www.skipthesmalltalk.com/public-events?category=All"
@@ -41,11 +43,11 @@ SALE_OPTIONS = ["Sale", "sale", "SALE", "SOLD OUT", "Sold Out", "sold out"]
 
 # Social media task types for checklist
 SOCIAL_MEDIA_TASK_TYPES = [
-    "instagram",
-    "facebook",
-    "newsletter",
-    "twitter",
-    "linkedin",
+    "IG asset created",
+    "IG asset to venue (optional)",
+    "included in THIS WEEK",
+    "2-week-out IG/FB scheduled",
+    "1-week-out IG/FB scheduled",
 ]
 
 # Selenium configuration
