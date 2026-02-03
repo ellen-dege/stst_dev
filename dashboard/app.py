@@ -1,5 +1,6 @@
 """Streamlit dashboard for STST Events."""
 
+import calendar
 import json
 from datetime import datetime
 
@@ -56,6 +57,63 @@ def events_to_dataframe(events) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(data)
+
+
+def render_calendar_view(events, year: int, month: int) -> None:
+    """Render a calendar view of events for a given month.
+
+    Args:
+        events: List of Event objects to display.
+        year: Year to display.
+        month: Month to display (1-12).
+    """
+    # Group events by date (ISO format YYYY-MM-DD)
+    events_by_date = {}
+    for event in events:
+        # event.date is stored as ISO format in DB
+        event_date = event.date  # YYYY-MM-DD
+        if event_date not in events_by_date:
+            events_by_date[event_date] = []
+        events_by_date[event_date].append(event)
+
+    # Set Monday as first day of week
+    cal = calendar.Calendar(firstweekday=0)  # 0 = Monday
+    month_days = cal.monthdayscalendar(year, month)
+
+    # Header row with day names
+    day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    cols = st.columns(7)
+    for i, day_name in enumerate(day_names):
+        cols[i].markdown(f"**{day_name}**")
+
+    # Calendar grid
+    for week in month_days:
+        cols = st.columns(7)
+        for i, day in enumerate(week):
+            with cols[i]:
+                if day == 0:
+                    st.write("")  # Empty cell for days outside the month
+                else:
+                    date_str = f"{year}-{month:02d}-{day:02d}"
+                    day_events = events_by_date.get(date_str, [])
+
+                    # Day number with event count indicator
+                    if day_events:
+                        st.markdown(f"**{day}** ({len(day_events)})")
+                    else:
+                        st.markdown(f"{day}")
+
+                    # List events for this day
+                    for event in day_events:
+                        city = event.city or ""
+                        venue = event.location or ""
+                        dating_label = "Dating" if event.is_dating else ""
+
+                        # Build display string
+                        parts = [p for p in [city, venue, dating_label] if p]
+                        display = ", ".join(parts) if parts else event.full_title[:20]
+
+                        st.caption(display)
 
 
 def render_events_table(df: pd.DataFrame, show_link_column: bool = True) -> None:
@@ -194,14 +252,42 @@ def page_social_media_checklist():
     """Render the Social Media Checklist page."""
     st.header("Social Media Checklist")
 
+    # Get all upcoming events for both views
+    all_upcoming = get_upcoming_events()
+
+    # Calendar View Section
+    st.subheader("Calendar View")
+
+    # Month navigation
+    today = datetime.now()
+    col1, col2 = st.columns([1, 3])
+
+    with col1:
+        # Default to current month, allow selecting future months
+        available_months = []
+        for i in range(6):  # Show 6 months ahead
+            month_date = datetime(today.year + (today.month + i - 1) // 12,
+                                  ((today.month + i - 1) % 12) + 1, 1)
+            available_months.append(month_date.strftime("%B %Y"))
+
+        selected_month_str = st.selectbox("Select Month", available_months)
+        selected_date = datetime.strptime(selected_month_str, "%B %Y")
+
+    # Render calendar
+    render_calendar_view(all_upcoming, selected_date.year, selected_date.month)
+
+    st.divider()
+
+    # Task Checklist Section
+    st.subheader("Task Checklist")
+
     # Filter options
     show_all = st.checkbox("Show all events (including completed)", value=False)
 
     if show_all:
-        events = get_upcoming_events()
+        events = all_upcoming
     else:
-        events = get_upcoming_events()
-        events = [e for e in events if any(
+        events = [e for e in all_upcoming if any(
             not task.completed for task in get_social_media_tasks(e.id)
         )]
 
