@@ -9,11 +9,7 @@ import streamlit as st
 
 from stst_dev.config import SOCIAL_MEDIA_TASK_TYPES
 from stst_dev.database import (
-    get_all_events,
     get_event_count,
-    get_events_with_incomplete_tasks,
-    get_events_with_sale_status,
-    get_new_events,
     get_social_media_tasks,
     get_upcoming_events,
     init_db,
@@ -116,14 +112,14 @@ def render_calendar_view(events, year: int, month: int) -> None:
                         st.caption(display)
 
 
-def render_events_table(df: pd.DataFrame, show_link_column: bool = True) -> None:
+def render_events_table(df: pd.DataFrame) -> None:
     """Render an events dataframe as a table with links."""
     if df.empty:
         st.info("No events found matching the criteria.")
         return
 
     # Configure columns to display
-    display_cols = ["Title", "Date", "Day", "Venue", "City", "State", "Tags", "Dating", "Status"]
+    display_cols = ["Title", "Date", "Day", "Venue", "City", "State", "Tags", "Dating", "Status", "Link"]
     if "Added" in df.columns:
         display_cols.append("Added")
 
@@ -142,16 +138,10 @@ def render_events_table(df: pd.DataFrame, show_link_column: bool = True) -> None
             "Tags": st.column_config.TextColumn("Tags", width="medium"),
             "Dating": st.column_config.TextColumn("Dating", width="small"),
             "Status": st.column_config.TextColumn("Status", width="small"),
+            "Link": st.column_config.LinkColumn("Link", width="small", display_text="🔗"),
             "Added": st.column_config.TextColumn("Added", width="small"),
         },
     )
-
-    # Show links section
-    if show_link_column and "Link" in df.columns:
-        with st.expander("Event Links"):
-            for _, row in df.iterrows():
-                if row["Link"]:
-                    st.markdown(f"- [{row['Title'][:50]}...]({row['Link']})")
 
 
 def page_upcoming_events():
@@ -203,49 +193,6 @@ def page_upcoming_events():
 
     st.metric("Events Found", len(filtered_df))
     render_events_table(filtered_df)
-
-
-def page_new_events():
-    """Render the Newly Added Events page."""
-    st.header("Newly Added Events")
-
-    days = st.slider("Show events added in the last N days", 1, 30, 7)
-    events = get_new_events(days=days)
-    df = events_to_dataframe(events)
-
-    if df.empty:
-        st.info(f"No events added in the last {days} days.")
-        return
-
-    st.metric("New Events", len(df))
-    render_events_table(df)
-
-
-def page_sales_status():
-    """Render the Low Ticket Sales / Sale Status page."""
-    st.header("Sale Status")
-
-    tab1, tab2 = st.tabs(["On Sale", "Sold Out"])
-
-    with tab1:
-        sale_events = get_events_with_sale_status("SALE")
-        df_sale = events_to_dataframe(sale_events)
-        st.metric("Events on Sale", len(df_sale))
-        if not df_sale.empty:
-            st.info("These events have a SALE tag - may indicate low ticket sales.")
-            render_events_table(df_sale)
-        else:
-            st.success("No events currently on sale.")
-
-    with tab2:
-        sold_out_events = get_events_with_sale_status("SOLD_OUT")
-        df_sold = events_to_dataframe(sold_out_events)
-        st.metric("Sold Out Events", len(df_sold))
-        if not df_sold.empty:
-            st.success("These events are sold out!")
-            render_events_table(df_sold)
-        else:
-            st.info("No sold out events.")
 
 
 def page_social_media_checklist():
@@ -357,40 +304,6 @@ def page_social_media_checklist():
                 st.rerun()
 
 
-def page_stats():
-    """Render the Statistics page."""
-    st.header("Event Statistics")
-
-    total_events = get_event_count()
-    upcoming_events = len(get_upcoming_events())
-    new_events_7d = len(get_new_events(days=7))
-    sale_events = len(get_events_with_sale_status("SALE"))
-    sold_out_events = len(get_events_with_sale_status("SOLD_OUT"))
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-    col1.metric("Total Events", total_events)
-    col2.metric("Upcoming", upcoming_events)
-    col3.metric("New (7 days)", new_events_7d)
-    col4.metric("On Sale", sale_events)
-    col5.metric("Sold Out", sold_out_events)
-
-    # Events by city
-    st.subheader("Events by City")
-    events = get_upcoming_events()
-    if events:
-        df = events_to_dataframe(events)
-        city_counts = df["City"].value_counts()
-        st.bar_chart(city_counts)
-
-    # Events by date (timeline)
-    st.subheader("Upcoming Events Timeline")
-    if events:
-        df = events_to_dataframe(events)
-        # Try to parse dates for grouping
-        date_counts = df["Date"].value_counts().sort_index()
-        st.line_chart(date_counts)
-
-
 # Main app
 def main():
     st.title("Skip the Small Talk Events Dashboard")
@@ -400,10 +313,7 @@ def main():
 
     pages = {
         "📅 Upcoming Events": page_upcoming_events,
-        "🆕 Newly Added": page_new_events,
-        "💰 Sale Status": page_sales_status,
         "📱 Social Media Checklist": page_social_media_checklist,
-        "📊 Statistics": page_stats,
     }
 
     selection = st.sidebar.radio("Go to", list(pages.keys()))
