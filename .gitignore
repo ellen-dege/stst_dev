@@ -3,6 +3,8 @@
 .env.*
 *.env
 secrets.json
+secrets.toml
+.streamlit/secrets.toml
 credentials.json
 *.pem
 *.key

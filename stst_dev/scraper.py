@@ -14,7 +14,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from .config import (
     CHROME_OPTIONS,
     CSS_SELECTORS,
-    DATING_INDICATORS,
+    EVENT_TYPES,
     SALE_OPTIONS,
     SELENIUM_TIMEOUT,
     TAG_OPTIONS,
@@ -60,18 +60,115 @@ def _clean_metadata_text(text: str) -> str:
     Returns:
         Cleaned text with normalized whitespace.
     """
-    if "\n" in text:
-        n_count = text.count("\n")
-        extras = "\n" * n_count
-        text = text.replace(extras, " ")
+    # Replace all newlines with spaces and collapse multiple spaces
+    text = text.replace("\n", " ")
+    while "  " in text:
+        text = text.replace("  ", " ")
     return text.strip()
 
 
-def _parse_event_metadata(text: str) -> dict:
-    """Parse event metadata from a title string.
+def _extract_location_from_metadata(metadata_text: str) -> str:
+    """Extract venue/location from metadata by finding text before (map).
+
+    The metadata can be separated by newlines or commas, e.g.:
+    "Dating,\nMcCarthy's, (map)\nBoston"
+
+    Args:
+        metadata_text: Metadata string containing venue before "(map)"
+
+    Returns:
+        The venue name, or empty string if not found.
+    """
+    if "(map)" not in metadata_text.lower():
+        return ""
+
+    # Normalize: replace newlines with commas, then split
+    normalized = metadata_text.replace("\n", ",")
+    parts = [p.strip() for p in normalized.split(",") if p.strip()]
+
+    for i, part in enumerate(parts):
+        if "(map)" in part.lower():
+            if i > 0:
+                return parts[i - 1]
+    return ""
+
+
+def _extract_event_type_from_tag_links(tag_hrefs: list[str]) -> str:
+    """Extract event type from tag link URLs.
+
+    Event types are encoded with <br><br> prefix in tag links, e.g.:
+    - "<br><br>Dating"
+    - "<br><br>Open to Everyone"
+    - "<br><br>LGBTQIA+"
+
+    Args:
+        tag_hrefs: List of tag link href values
+
+    Returns:
+        The event type, or empty string if not found.
+    """
+    from urllib.parse import unquote
+
+    for href in tag_hrefs:
+        if "tag=" not in href:
+            continue
+
+        # Extract and decode tag value
+        tag_value = unquote(href.split("tag=")[1].split("&")[0])
+        tag_value = tag_value.replace("+", " ")
+
+        # Event types have <br><br> prefix
+        if tag_value.startswith("<br><br>"):
+            event_type = tag_value.replace("<br><br>", "").strip()
+            if event_type in EVENT_TYPES:
+                return event_type
+
+    return ""
+
+
+def _extract_venue_from_tag_links(tag_hrefs: list[str]) -> str:
+    """Extract venue from tag link URLs.
+
+    Tag links contain URL-encoded values like:
+    - "<br><br>Dating" (event type)
+    - "<br>McCarthy's" (venue)
+    - "(<a href='...'>map</a>)" (map link)
+
+    The venue is the tag that starts with "<br>" (single) but isn't a known event type.
+
+    Args:
+        tag_hrefs: List of tag link href values
+
+    Returns:
+        The venue name, or empty string if not found.
+    """
+    from urllib.parse import unquote
+
+    for href in tag_hrefs:
+        if "tag=" not in href:
+            continue
+
+        # Extract and decode tag value
+        tag_value = unquote(href.split("tag=")[1].split("&")[0])
+
+        # Replace + with space (URL encoding)
+        tag_value = tag_value.replace("+", " ")
+
+        # Check if it's a venue (starts with single <br> but not an event type)
+        if tag_value.startswith("<br>") and not tag_value.startswith("<br><br>"):
+            venue = tag_value.replace("<br>", "").strip()
+            if venue and venue not in EVENT_TYPES:
+                return venue
+
+    return ""
+
+
+def _parse_event_metadata(text: str, metadata_text: str = "") -> dict:
+    """Parse event metadata from a title string and optional metadata.
 
     Args:
         text: Event title string (e.g., "Skip the Small Talk at Aeronaut: Monday, August 25, 2025")
+        metadata_text: Optional metadata string containing venue before "(map)"
 
     Returns:
         Dictionary with parsed event components.
@@ -85,16 +182,20 @@ def _parse_event_metadata(text: str) -> dict:
     elif ":" in text:
         date = text.rsplit(":", 1)[1].strip()
 
-    # Extract location (text between "at " and ": ")
+    # Extract location from metadata (text before "(map)") - works for all event types
     location = ""
-    if " at " in text:
+    if metadata_text:
+        location = _extract_location_from_metadata(metadata_text)
+
+    # Fallback: extract from title (text between "at " and ": ") for backwards compatibility
+    if not location and " at " in text:
         location_part = text.split(" at ", 1)[1]
         if ": " in location_part:
             location = location_part.split(": ", 1)[0]
         else:
             location = location_part
 
-    # Extract tags
+    # Extract tags from title text
     tags = []
     for tag in TAG_OPTIONS:
         if tag in text:
@@ -103,8 +204,8 @@ def _parse_event_metadata(text: str) -> dict:
             if normalized_tag not in tags:
                 tags.append(normalized_tag)
 
-    # Check if dating event
-    is_dating = any(d in text for d in DATING_INDICATORS)
+    # Note: is_dating is determined by event_type in scrape_events()
+    is_dating = False
 
     # Check sale status
     sale_status = None
@@ -155,68 +256,67 @@ def scrape_events(
             EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
         )
 
-        # Find event elements
-        event_elements = driver.find_elements(
-            By.CLASS_NAME, CSS_SELECTORS["event_title_links"]
-        )
-        metadata_elements = driver.find_elements(
-            By.CLASS_NAME, CSS_SELECTORS["event_metadata"]
-        )
+        # Find event cards (each .summary-item contains one event)
+        event_cards = driver.find_elements(By.CSS_SELECTOR, ".summary-item")
+        logger.info(f"Found {len(event_cards)} event cards")
 
-        logger.info(f"Found {len(event_elements)} event elements")
-        logger.info(f"Found {len(metadata_elements)} metadata elements")
-
-        # Extract titles and links (filtering out empty entries)
-        active_events = []
-        for elem in event_elements:
-            title = elem.text.strip()
-            link = elem.get_attribute("href")
-            if title:  # Only include events with non-empty titles
-                active_events.append((title, link))
-
-        # Extract metadata (filtering out empty entries)
-        metadata_list = [_clean_metadata_text(elem.text) for elem in metadata_elements]
-        metadata_list = [m for m in metadata_list if m]
-
-        logger.info(f"Extracted {len(active_events)} active events")
-        logger.info(f"Extracted {len(metadata_list)} metadata entries")
-
-        # Build Event objects
-        # The metadata has SALE/SOLD OUT prefixes, while titles from links don't
-        # We'll use metadata for parsing but link titles for the actual title
+        # Build Event objects from each card
         events = []
 
-        for i, (title, link) in enumerate(active_events):
-            # Try to find matching metadata (which has sale status)
-            metadata_text = None
-            for meta in metadata_list:
-                # Check if this metadata matches this event (by comparing date portion)
-                if ": " in title and ": " in meta:
-                    title_date = title.rsplit(": ", 1)[1]
-                    meta_date = meta.rsplit(": ", 1)[1]
-                    if title_date == meta_date and (
-                        title.split(": ")[0] in meta or meta.split(": ")[0] in title
-                    ):
-                        metadata_text = meta
-                        break
+        for card in event_cards:
+            # Get title and link from the title link element
+            try:
+                title_elem = card.find_element(
+                    By.CLASS_NAME, CSS_SELECTORS["event_title_links"]
+                )
+                title = title_elem.text.strip()
+                link = title_elem.get_attribute("href")
+            except Exception:
+                continue  # Skip cards without title links
 
-            # Parse from the metadata if found, otherwise from the title
-            text_to_parse = metadata_text if metadata_text else title
-            parsed = _parse_event_metadata(text_to_parse)
+            if not title:
+                continue  # Skip empty titles
 
-            # Use the clean title (from link) as full_title if metadata had sale prefix
-            if metadata_text and (
-                metadata_text.startswith("SALE")
-                or metadata_text.startswith("SOLD OUT")
-            ):
-                parsed["full_title"] = title
+            # Get metadata text for sale status detection
+            try:
+                metadata_elem = card.find_element(
+                    By.CLASS_NAME, CSS_SELECTORS["event_metadata"]
+                )
+                metadata_text = _clean_metadata_text(metadata_elem.text)
+            except Exception:
+                metadata_text = ""
+
+            # Extract info from tag links in this card
+            tag_links = card.find_elements(By.CSS_SELECTOR, 'a[href*="/store?tag="]')
+            tag_hrefs = [elem.get_attribute("href") for elem in tag_links]
+            venue_from_tags = _extract_venue_from_tag_links(tag_hrefs)
+            event_type = _extract_event_type_from_tag_links(tag_hrefs)
+
+            # Parse metadata for other fields
+            parsed = _parse_event_metadata(title, metadata_text)
+
+            # Use venue from tag links if found, otherwise fall back to parsed location
+            location = venue_from_tags if venue_from_tags else parsed["location"]
+
+            # Determine is_dating from event_type
+            is_dating = event_type == "Dating"
+
+            # Build tags list - start with tags from title
+            tags = parsed["tags"].copy()
+
+            # Add event_type as tag if applicable
+            # "Open to Everyone" = regular event, no tag needed
+            # (TODO: Consider adding a "Regular" tag for these in the future)
+            if event_type and event_type != "Open to Everyone":
+                if event_type not in tags:
+                    tags.append(event_type)
 
             event = Event(
-                full_title=parsed["full_title"],
+                full_title=title,
                 date=parsed["date"],
-                location=parsed["location"],
-                tags=parsed["tags"],
-                is_dating=parsed["is_dating"],
+                location=location,
+                tags=tags,
+                is_dating=is_dating,
                 sale_status=parsed["sale_status"],
                 link=link or "",
             )

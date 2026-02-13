@@ -18,10 +18,11 @@ CSS_SELECTORS = {
     "event_metadata": "summary-item-record-type-store-item",
 }
 
-# Tag options for categorizing events
+# Tag options for categorizing events (extracted from title text)
 TAG_OPTIONS = [
     "20s",
     "30s",
+    "Millennials",
     "Online",
     "BIPOC",
     "LGBTQIA+",
@@ -35,8 +36,16 @@ TAG_OPTIONS = [
     "ace-spectrum",
 ]
 
-# Dating event indicators
-DATING_INDICATORS = ["Dating", "dating"]
+# Event types (extracted from tag links with <br><br> prefix)
+# These determine is_dating and can also become tags
+EVENT_TYPES = [
+    "Open to Everyone",  # No tag added for this (regular event)
+    # TODO: Consider adding a "Regular" tag for these in the future
+    "Dating",            # Sets is_dating=True
+    "LGBTQIA+",          # Added as tag
+    "Women",             # Added as tag (e.g., "All Women's" events)
+    "BIPOC",             # Added as tag
+]
 
 # Sale status options
 SALE_OPTIONS = ["Sale", "sale", "SALE", "SOLD OUT", "Sold Out", "sold out"]
