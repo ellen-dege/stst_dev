@@ -20,6 +20,11 @@ class Event:
     city: Optional[str] = None
     state: Optional[str] = None
     day_of_week: Optional[str] = None
+    start_time: Optional[str] = None  # e.g., "7:00 pm"
+
+    # Dashboard-managed fields (not set by scraper)
+    canva_posted: bool = False
+    venue_placeholder: Optional[str] = None
 
     # Database fields (set when loaded from DB)
     id: Optional[int] = None
@@ -83,6 +88,9 @@ class Event:
             is_dating=bool(row.get("is_dating", False)),
             sale_status=row.get("sale_status"),
             link=row.get("link", ""),
+            start_time=row.get("start_time"),
+            canva_posted=bool(row.get("canva_posted", False)),
+            venue_placeholder=row.get("venue_placeholder"),
             first_seen_at=datetime.fromisoformat(row["first_seen_at"])
             if row.get("first_seen_at")
             else None,
@@ -104,6 +112,7 @@ class Event:
             "is_dating": self.is_dating,
             "sale_status": self.sale_status,
             "link": self.link,
+            "start_time": self.start_time,
         }
 
 

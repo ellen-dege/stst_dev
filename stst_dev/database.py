@@ -124,6 +124,9 @@ CREATE TABLE IF NOT EXISTS events (
     is_dating BOOLEAN,
     sale_status TEXT,
     link TEXT UNIQUE,
+    start_time TEXT,
+    canva_posted BOOLEAN DEFAULT FALSE,
+    venue_placeholder TEXT,
     first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -178,11 +181,17 @@ def init_db(db_path: Optional[Path] = None) -> None:
         for index_sql in CREATE_INDEXES:
             cursor.execute(index_sql)
 
-        # Migration: add state column if it doesn't exist
+        # Migrations: add columns if they don't exist
         cursor.execute("PRAGMA table_info(events)")
         columns = [row[1] for row in cursor.fetchall()]
         if "state" not in columns:
             cursor.execute("ALTER TABLE events ADD COLUMN state TEXT")
+        if "start_time" not in columns:
+            cursor.execute("ALTER TABLE events ADD COLUMN start_time TEXT")
+        if "canva_posted" not in columns:
+            cursor.execute("ALTER TABLE events ADD COLUMN canva_posted BOOLEAN DEFAULT FALSE")
+        if "venue_placeholder" not in columns:
+            cursor.execute("ALTER TABLE events ADD COLUMN venue_placeholder TEXT")
 
         conn.commit()
     finally:
@@ -237,7 +246,7 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                     UPDATE events
                     SET full_title = ?, date = ?, day_of_week = ?, location = ?,
                         city = ?, state = ?, tags = ?, is_dating = ?, sale_status = ?,
-                        last_seen_at = ?
+                        start_time = ?, last_seen_at = ?
                     WHERE link = ?
                     """,
                     (
@@ -250,6 +259,7 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                         data["tags"],
                         data["is_dating"],
                         data["sale_status"],
+                        data.get("start_time"),
                         now,
                         data["link"],
                     ),
@@ -261,8 +271,8 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                     """
                     INSERT INTO events
                     (full_title, date, day_of_week, location, city, state, tags,
-                     is_dating, sale_status, link, first_seen_at, last_seen_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     is_dating, sale_status, start_time, link, first_seen_at, last_seen_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         data["full_title"],
@@ -274,6 +284,7 @@ def upsert_events(events: list[Event], db_path: Optional[Path] = None) -> dict:
                         data["tags"],
                         data["is_dating"],
                         data["sale_status"],
+                        data.get("start_time"),
                         data["link"],
                         now,
                         now,
@@ -453,6 +464,32 @@ def mark_task_complete(
             WHERE event_id = ? AND task_type = ?
             """,
             (completed, completed_at, event_id, task_type),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def mark_canva_posted(
+    event_id: int, posted: bool = True, db_path: Optional[Path] = None
+) -> bool:
+    """Mark an event as posted (or not) to Canva.
+
+    Args:
+        event_id: ID of the event.
+        posted: Whether the event has been added to Canva.
+        db_path: Path to the database file.
+
+    Returns:
+        True if the event was updated, False if not found.
+    """
+    conn = get_connection(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE events SET canva_posted = ? WHERE id = ?",
+            (posted, event_id),
         )
         conn.commit()
         return cursor.rowcount > 0

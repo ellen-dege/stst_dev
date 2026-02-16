@@ -2,7 +2,7 @@
 
 import calendar
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 import streamlit as st
@@ -13,6 +13,7 @@ from stst_dev.database import (
     get_social_media_tasks,
     get_upcoming_events,
     init_db,
+    mark_canva_posted,
     mark_task_complete,
 )
 
@@ -42,6 +43,7 @@ def events_to_dataframe(events) -> pd.DataFrame:
                 "Title": event.full_title,
                 "Date": event.date,
                 "Day": event.day_of_week,
+                "Time": event.start_time or "",
                 "Venue": event.location,
                 "City": event.city or "",
                 "State": event.state or "",
@@ -103,10 +105,11 @@ def render_calendar_view(events, year: int, month: int) -> None:
                     for event in day_events:
                         city = event.city or ""
                         venue = event.location or ""
+                        time = event.start_time or ""
                         dating_label = "Dating" if event.is_dating else ""
 
                         # Build display string
-                        parts = [p for p in [city, venue, dating_label] if p]
+                        parts = [p for p in [time, city, venue, dating_label] if p]
                         display = ", ".join(parts) if parts else event.full_title[:20]
 
                         st.caption(display)
@@ -119,7 +122,7 @@ def render_events_table(df: pd.DataFrame) -> None:
         return
 
     # Configure columns to display
-    display_cols = ["Title", "Date", "Day", "Venue", "City", "State", "Tags", "Dating", "Status", "Link"]
+    display_cols = ["Title", "Date", "Day", "Time", "Venue", "City", "State", "Tags", "Dating", "Status", "Link"]
     if "Added" in df.columns:
         display_cols.append("Added")
 
@@ -132,6 +135,7 @@ def render_events_table(df: pd.DataFrame) -> None:
             "Title": st.column_config.TextColumn("Event Title", width="large"),
             "Date": st.column_config.TextColumn("Date", width="medium"),
             "Day": st.column_config.TextColumn("Day", width="small"),
+            "Time": st.column_config.TextColumn("Time", width="small"),
             "Venue": st.column_config.TextColumn("Venue", width="medium"),
             "City": st.column_config.TextColumn("City", width="small"),
             "State": st.column_config.TextColumn("State", width="small"),
@@ -304,6 +308,193 @@ def page_social_media_checklist():
                 st.rerun()
 
 
+def _parse_event_date(date_str: str):
+    """Parse event date from ISO or long format."""
+    for fmt in ("%Y-%m-%d", "%B %d, %Y"):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _get_event_type_label(event) -> str:
+    """Derive a display label for the event type."""
+    tags = event.tags if isinstance(event.tags, list) else json.loads(event.tags or "[]")
+    if event.is_dating:
+        for tag in tags:
+            if tag in ("20s", "30s", "Millennials"):
+                return f"{tag} speed-dating"
+        return "Speed-dating"
+    for tag in ("LGBTQIA+", "BIPOC", "Women", "20s", "30s", "Millennials"):
+        if tag in tags:
+            return tag
+    return "Regular"
+
+
+def _format_canva_text(event) -> str:
+    """Format event info as multi-line text for Canva copy-paste."""
+    parsed = _parse_event_date(event.date)
+    if parsed:
+        month_abbr = parsed.strftime("%b")
+        day_num = str(parsed.day)
+    else:
+        month_abbr = ""
+        day_num = ""
+
+    day_of_week = event.day_of_week or ""
+    start_time = event.start_time or ""
+    venue = event.location or ""
+    city = event.city or ""
+    state = event.state or ""
+    city_state = f"{city}, {state}" if city and state else city or state or ""
+
+    lines = [
+        f"{day_of_week},",
+        f"{month_abbr} {day_num},",
+        f"{start_time},",
+        f"{venue},",
+        city_state,
+    ]
+    return "\n".join(lines)
+
+
+def _render_week_section(events, label, monday, sunday, key_prefix):
+    """Render a labeled week section with event rows."""
+    date_range = f"{monday.strftime('%b %d')} \u2013 {sunday.strftime('%b %d, %Y')}"
+    st.markdown(
+        f'<div class="week-header">{label} &middot; {date_range}</div>',
+        unsafe_allow_html=True,
+    )
+
+    if not events:
+        st.info("No events this week.")
+        return
+
+    # Column headers
+    header_cols = st.columns([5, 2, 2, 1])
+    header_cols[0].markdown(
+        '<div class="col-header">Post Text</div>', unsafe_allow_html=True
+    )
+    header_cols[1].markdown(
+        '<div class="col-header">Event Type</div>', unsafe_allow_html=True
+    )
+    header_cols[2].markdown(
+        '<div class="col-header">Venue Placeholder</div>', unsafe_allow_html=True
+    )
+    header_cols[3].markdown(
+        '<div class="col-header">Added to Canva</div>', unsafe_allow_html=True
+    )
+
+    for event in events:
+        cols = st.columns([5, 2, 2, 1])
+        with cols[0]:
+            st.code(_format_canva_text(event), language=None)
+        with cols[1]:
+            type_label = _get_event_type_label(event)
+            st.markdown(
+                f'<span class="event-type-pill">{type_label}</span>',
+                unsafe_allow_html=True,
+            )
+        with cols[2]:
+            st.caption(event.venue_placeholder or "")
+        with cols[3]:
+            posted = st.checkbox(
+                "Done",
+                value=event.canva_posted,
+                key=f"{key_prefix}_{event.id}",
+                label_visibility="collapsed",
+            )
+            if posted != event.canva_posted:
+                mark_canva_posted(event.id, posted)
+                st.rerun()
+
+
+def page_weekly_posts():
+    """Render the Weekly Posts page for Canva content creation."""
+    st.markdown(
+        """
+        <style>
+        .weekly-title {
+            color: #920c4f;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        .week-header {
+            color: #920c4f;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-bottom: 3px solid #920c4f;
+            padding-bottom: 8px;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .col-header {
+            color: #920c4f;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(146, 12, 79, 0.2);
+        }
+        .event-type-pill {
+            background: linear-gradient(135deg, #fce4ef, #f8d0e3);
+            color: #920c4f;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="weekly-title">Weekly Posts</div>', unsafe_allow_html=True)
+
+    events = get_upcoming_events()
+    today = datetime.now().date()
+
+    # Week boundaries (weeks start on Monday)
+    if today.weekday() == 6:  # Sunday — upcoming week is tomorrow
+        upcoming_monday = today + timedelta(days=1)
+    else:
+        upcoming_monday = today - timedelta(days=today.weekday())
+    upcoming_sunday = upcoming_monday + timedelta(days=6)
+    next_monday = upcoming_monday + timedelta(days=7)
+    next_sunday = next_monday + timedelta(days=6)
+
+    # Categorize events by week
+    upcoming_week = []
+    next_week = []
+
+    for event in events:
+        event_date = _parse_event_date(event.date)
+        if not event_date:
+            continue
+        d = event_date.date()
+        if upcoming_monday <= d <= upcoming_sunday:
+            upcoming_week.append(event)
+        elif next_monday <= d <= next_sunday:
+            next_week.append(event)
+
+    upcoming_week.sort(key=lambda e: (e.date, e.start_time or ""))
+    next_week.sort(key=lambda e: (e.date, e.start_time or ""))
+
+    _render_week_section(
+        upcoming_week, "Upcoming Week",
+        upcoming_monday, upcoming_sunday, "upcoming"
+    )
+    _render_week_section(
+        next_week, "Next Week",
+        next_monday, next_sunday, "next"
+    )
+
+
 # Main app
 def main():
     st.title("Skip the Small Talk Events Dashboard")
@@ -313,6 +504,7 @@ def main():
 
     pages = {
         "📅 Upcoming Events": page_upcoming_events,
+        "🎨 Weekly Posts": page_weekly_posts,
         "📱 Social Media Checklist": page_social_media_checklist,
     }
 

@@ -126,6 +126,34 @@ def _extract_event_type_from_tag_links(tag_hrefs: list[str]) -> str:
     return ""
 
 
+def _extract_start_time_from_tag_links(tag_hrefs: list[str]) -> str:
+    """Extract event start time from tag link URLs.
+
+    Time tags are plain values like "7:00 pm" (no <br> prefix).
+
+    Args:
+        tag_hrefs: List of tag link href values
+
+    Returns:
+        The start time string (e.g., "7:00 pm"), or empty string if not found.
+    """
+    import re
+    from urllib.parse import unquote
+
+    for href in tag_hrefs:
+        if "tag=" not in href:
+            continue
+
+        tag_value = unquote(href.split("tag=")[1].split("&")[0])
+        tag_value = tag_value.replace("+", " ")
+
+        # Match time patterns like "7:00 pm", "12:30 am"
+        if re.match(r"^\d{1,2}:\d{2}\s*(am|pm)$", tag_value, re.IGNORECASE):
+            return tag_value
+
+    return ""
+
+
 def _extract_venue_from_tag_links(tag_hrefs: list[str]) -> str:
     """Extract venue from tag link URLs.
 
@@ -291,6 +319,7 @@ def scrape_events(
             tag_hrefs = [elem.get_attribute("href") for elem in tag_links]
             venue_from_tags = _extract_venue_from_tag_links(tag_hrefs)
             event_type = _extract_event_type_from_tag_links(tag_hrefs)
+            start_time = _extract_start_time_from_tag_links(tag_hrefs)
 
             # Parse metadata for other fields
             parsed = _parse_event_metadata(title, metadata_text)
@@ -319,6 +348,7 @@ def scrape_events(
                 is_dating=is_dating,
                 sale_status=parsed["sale_status"],
                 link=link or "",
+                start_time=start_time or None,
             )
             events.append(event)
 
