@@ -3,6 +3,7 @@
 import calendar
 import json
 from datetime import datetime, timedelta
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 
 import pandas as pd
 import streamlit as st
@@ -350,8 +351,6 @@ def _format_canva_text(event) -> str:
     city_state = f"{city}, {state}" if city and state else city or state or ""
 
     lines = [
-        f"{day_of_week},",
-        f"{month_abbr} {day_num},",
         f"{start_time},",
         f"{venue},",
         city_state,
@@ -416,28 +415,28 @@ def page_weekly_posts():
         """
         <style>
         .weekly-title {
-            color: #920c4f;
+            color: #e84a8a;
             font-size: 2rem;
             font-weight: 800;
             margin-bottom: 0.5rem;
         }
         .week-header {
-            color: #920c4f;
+            color: #e84a8a;
             font-size: 1.4rem;
             font-weight: 700;
-            border-bottom: 3px solid #920c4f;
+            border-bottom: 3px solid #e84a8a;
             padding-bottom: 8px;
             margin-top: 2rem;
             margin-bottom: 1.5rem;
         }
         .col-header {
-            color: #920c4f;
+            color: #e84a8a;
             font-weight: 700;
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             padding-bottom: 8px;
-            border-bottom: 1px solid rgba(146, 12, 79, 0.2);
+            border-bottom: 1px solid rgba(232, 74, 138, 0.3);
         }
         .event-type-pill {
             background: linear-gradient(135deg, #fce4ef, #f8d0e3);
@@ -495,6 +494,153 @@ def page_weekly_posts():
     )
 
 
+def page_utm_builder():
+    """Render the UTM Link Builder page."""
+    st.markdown(
+        """
+        <style>
+        .utm-title {
+            color: #5b8af5;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        .utm-section-header {
+            color: #5b8af5;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .utm-url-box {
+            background: rgba(91, 138, 245, 0.1);
+            border: 2px solid #5b8af5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 1.5rem;
+        }
+        .utm-url-label {
+            color: #5b8af5;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="utm-title">UTM Link Builder</div>', unsafe_allow_html=True)
+
+    # Get events within the next 30 days
+    events = get_upcoming_events()
+    today = datetime.now().date()
+    cutoff = today + timedelta(days=30)
+
+    upcoming_30 = []
+    for event in events:
+        parsed = _parse_event_date(event.date)
+        if parsed and today <= parsed.date() <= cutoff:
+            upcoming_30.append(event)
+
+    upcoming_30.sort(key=lambda e: (e.date, e.start_time or ""))
+
+    if not upcoming_30:
+        st.info("No events found within the next 30 days.")
+        return
+
+    # Event selector
+    st.markdown(
+        '<div class="utm-section-header">Select Event</div>',
+        unsafe_allow_html=True,
+    )
+    event_labels = []
+    for event in upcoming_30:
+        parsed = _parse_event_date(event.date)
+        date_display = parsed.strftime("%b %d") if parsed else event.date
+        city = event.city or ""
+        label = f"{date_display} — {event.full_title}"
+        if city:
+            label += f" ({city})"
+        event_labels.append(label)
+
+    selected_idx = st.selectbox(
+        "Event",
+        range(len(event_labels)),
+        format_func=lambda i: event_labels[i],
+        label_visibility="collapsed",
+    )
+    selected_event = upcoming_30[selected_idx]
+
+    # Campaign Source
+    st.markdown(
+        '<div class="utm-section-header">Campaign Source</div>',
+        unsafe_allow_html=True,
+    )
+    source_options = ["Instagram", "Facebook", "Newsletter", "LinkedIn", "Twitter/X", "Website", "Other"]
+    selected_source = st.selectbox("Campaign Source", source_options, label_visibility="collapsed")
+
+    custom_source = ""
+    if selected_source == "Other":
+        custom_source = st.text_input("Enter custom source", placeholder="e.g., tiktok")
+
+    utm_source = custom_source.strip() if selected_source == "Other" else selected_source.lower()
+
+    # Campaign Medium
+    st.markdown(
+        '<div class="utm-section-header">Campaign Medium</div>',
+        unsafe_allow_html=True,
+    )
+    medium_options = ["Social", "Email", "Paid", "Referral", "Other"]
+    selected_medium = st.selectbox("Campaign Medium", medium_options, label_visibility="collapsed")
+
+    custom_medium = ""
+    if selected_medium == "Other":
+        custom_medium = st.text_input("Enter custom medium", placeholder="e.g., affiliate")
+
+    utm_medium = custom_medium.strip() if selected_medium == "Other" else selected_medium.lower()
+
+    # Generate URL
+    if utm_source and utm_medium and selected_event.link:
+        base_url = selected_event.link
+        # Parse existing URL and strip any existing UTM params
+        parsed_url = urlparse(base_url)
+        existing_params = parse_qs(parsed_url.query)
+        for key in list(existing_params.keys()):
+            if key.startswith("utm_"):
+                del existing_params[key]
+
+        # Build UTM params
+        utm_params = {
+            "utm_source": utm_source,
+            "utm_medium": utm_medium,
+        }
+
+        # Merge with any existing non-UTM params
+        all_params = {k: v[0] for k, v in existing_params.items()}
+        all_params.update(utm_params)
+
+        new_query = urlencode(all_params)
+        final_url = urlunparse(parsed_url._replace(query=new_query))
+
+        st.markdown(
+            '<div class="utm-url-box">'
+            '<div class="utm-url-label">Generated URL</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        st.code(final_url, language=None)
+    else:
+        if not selected_event.link:
+            st.warning("This event does not have a link.")
+        elif not utm_source:
+            st.info("Enter a campaign source to generate the URL.")
+        elif not utm_medium:
+            st.info("Enter a campaign medium to generate the URL.")
+
+
 # Main app
 def main():
     st.title("Skip the Small Talk Events Dashboard")
@@ -506,6 +652,7 @@ def main():
         "📅 Upcoming Events": page_upcoming_events,
         "🎨 Weekly Posts": page_weekly_posts,
         "📱 Social Media Checklist": page_social_media_checklist,
+        "🔗 UTM Link Builder": page_utm_builder,
     }
 
     selection = st.sidebar.radio("Go to", list(pages.keys()))
