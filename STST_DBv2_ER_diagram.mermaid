@@ -1,0 +1,95 @@
+erDiagram
+    city {
+        INTEGER city_id PK
+        TEXT city_name
+        TEXT state
+        TEXT country
+        TEXT region
+        TEXT time_zone
+        BOOLEAN has_dedicated_ig
+        TEXT ig_handle
+    }
+
+    facilitator {
+        INTEGER facilitator_id PK
+        INTEGER city_id FK
+        TEXT facilitator_name
+        TEXT facilitator_email
+        TEXT ig_handle
+        BOOLEAN tag_on_ig
+    }
+
+    venue {
+        INTEGER venue_id PK
+        INTEGER city_id FK
+        TEXT venue_name
+        TEXT venue_ig_handle_1
+        TEXT venue_ig_handle_2
+        TEXT venue_website
+        TEXT venue_address
+        TEXT notes
+    }
+
+    event {
+        INTEGER event_id PK
+        INTEGER city_id FK
+        INTEGER venue_id FK
+        INTEGER facilitator_id FK
+        DATE event_date
+        TEXT event_day_of_week
+        TIME event_start_time
+        TEXT event_type
+        TEXT event_link
+        BOOLEAN sold_out
+        BOOLEAN is_dating
+        INTEGER tickets_sold
+        INTEGER ticket_threshold
+        INTEGER num_attended
+        INTEGER man_tix
+        INTEGER woman_tix
+        INTEGER man_tix_understudy
+        INTEGER woman_tix_understudy
+        DATETIME first_scraped_at
+        DATETIME last_checked_at
+        DATETIME status_changed_at
+    }
+
+    market_task {
+        INTEGER market_task_id PK
+        INTEGER event_id FK
+        BOOLEAN graphic_created
+        BOOLEAN grid_post_scheduled
+        BOOLEAN venue_collab_sent
+        BOOLEAN venue_collab_accepted
+        BOOLEAN story_postlive
+        BOOLEAN story_reminder
+        BOOLEAN story_dayof
+        BOOLEAN extra_promo_pushed
+        BOOLEAN photo_link_sent
+        TEXT utm_link_grid
+        TEXT utm_link_story_reminder
+        TEXT utm_link_story_dayof
+        TEXT notes
+        DATETIME last_updated_at
+    }
+
+    tag {
+        INTEGER tag_id PK
+        TEXT tag_name
+        TEXT tag_category
+    }
+
+    event_tag {
+        INTEGER event_tag_id PK
+        INTEGER event_id FK
+        INTEGER tag_id FK
+    }
+
+    city ||--o{ facilitator : "has"
+    city ||--o{ venue : "has"
+    city ||--o{ event : "hosts"
+    venue ||--o{ event : "located at"
+    facilitator ||--o{ event : "runs"
+    event ||--|| market_task : "tracked by"
+    event ||--o{ event_tag : "tagged with"
+    tag ||--o{ event_tag : "applied to"
