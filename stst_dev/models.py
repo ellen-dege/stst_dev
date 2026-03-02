@@ -21,6 +21,7 @@ class Event:
     state: Optional[str] = None
     day_of_week: Optional[str] = None
     start_time: Optional[str] = None  # e.g., "7:00 pm"
+    event_type: Optional[str] = None  # e.g., "Open to Everyone", "Dating"
 
     # Dashboard-managed fields (not set by scraper)
     canva_posted: bool = False

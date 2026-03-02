@@ -5,7 +5,7 @@ import argparse
 import logging
 import sys
 
-from stst_dev.database import get_event_count, init_db, upsert_events
+from stst_dev.database import get_event_count_v2, upsert_events_v2
 from stst_dev.scraper import ScraperError, scrape_events
 
 
@@ -42,12 +42,8 @@ def main() -> int:
     logger = logging.getLogger(__name__)
 
     try:
-        # Initialize database
-        logger.info("Initializing database...")
-        init_db()
-
         # Get current event count for comparison
-        count_before = get_event_count()
+        count_before = get_event_count_v2()
 
         # Scrape events
         logger.info("Scraping events from website...")
@@ -57,22 +53,31 @@ def main() -> int:
             logger.warning("No events scraped from website")
             return 1
 
-        # Upsert events to database
+        # Upsert events to v2 database
         logger.info(f"Saving {len(events)} events to database...")
-        result = upsert_events(events)
+        result = upsert_events_v2(events)
 
         # Get final count
-        count_after = get_event_count()
+        count_after = get_event_count_v2()
 
         # Print summary
         print("\n" + "=" * 50)
         print("REFRESH COMPLETE")
         print("=" * 50)
-        print(f"Total events scraped:  {result['total']}")
-        print(f"New events added:      {result['inserted']}")
+        print(f"Total events scraped:    {result['total']}")
+        print(f"New events added:        {result['inserted']}")
         print(f"Existing events updated: {result['updated']}")
-        print(f"Total events in database: {count_after}")
+        print(f"Sold-out status changed: {result['sold_out_changed']}")
+        print(f"Venues auto-created:     {result['venues_created']}")
+        print(f"Skipped (no city):       {result['skipped']}")
+        print(f"Total events in DB:      {count_after}")
         print("=" * 50)
+
+        # Unknown venues (auto-created)
+        if result["unknown_venues"]:
+            print(f"\nAuto-created venues ({len(set(result['unknown_venues']))}):")
+            for v in sorted(set(result["unknown_venues"])):
+                print(f"  - {v}")
 
         # Summary of sale statuses
         sale_events = [e for e in events if e.sale_status == "SALE"]

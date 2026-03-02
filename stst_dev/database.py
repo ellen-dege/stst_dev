@@ -1,12 +1,23 @@
 """SQLite database operations for STST Events."""
 
+import logging
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 
-from .config import DATABASE_PATH, SOCIAL_MEDIA_TASK_TYPES, VENUE_LOOKUP_PATH, CITY_STATE_LOOKUP_PATH
+from .config import (
+    DATABASE_PATH,
+    EVENT_TYPE_DEFAULT,
+    EVENT_TYPE_MAP,
+    SOCIAL_MEDIA_TASK_TYPES,
+    VENUE_LOOKUP_PATH,
+    CITY_STATE_LOOKUP_PATH,
+)
 from .models import Event, SocialMediaTask
+
+logger = logging.getLogger(__name__)
 
 # Cache for lookup tables
 _venue_lookup_cache: Optional[dict[str, str]] = None
@@ -538,6 +549,422 @@ def get_event_count(db_path: Optional[Path] = None) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM events")
+        return cursor.fetchone()[0]
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# v2 database functions (write to normalized schema from schema.sql)
+# ---------------------------------------------------------------------------
+
+
+def get_v2_connection(db_path: Optional[Path] = None) -> sqlite3.Connection:
+    """Get a v2 database connection with foreign keys enabled.
+
+    Args:
+        db_path: Path to the database file (defaults to DATABASE_PATH).
+
+    Returns:
+        SQLite connection with row factory and foreign keys ON.
+    """
+    db_path = db_path or DATABASE_PATH
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def load_venue_alias_lookup_v2(
+    conn: sqlite3.Connection,
+) -> dict[str, tuple[int, int]]:
+    """Load venue alias → (venue_id, city_id) mapping from the database.
+
+    Args:
+        conn: Active database connection.
+
+    Returns:
+        Dict mapping alias string → (venue_id, city_id).
+    """
+    cur = conn.execute(
+        """SELECT va.alias, va.venue_id, v.city_id
+           FROM venue_alias va
+           JOIN venue v USING (venue_id)"""
+    )
+    return {row["alias"]: (row["venue_id"], row["city_id"]) for row in cur}
+
+
+def load_tag_lookup_v2(conn: sqlite3.Connection) -> dict[str, int]:
+    """Load tag_name → tag_id mapping from the database.
+
+    Args:
+        conn: Active database connection.
+
+    Returns:
+        Dict mapping tag_name → tag_id.
+    """
+    cur = conn.execute("SELECT tag_id, tag_name FROM tag")
+    return {row["tag_name"]: row["tag_id"] for row in cur}
+
+
+def load_city_name_lookup_v2(conn: sqlite3.Connection) -> dict[str, int]:
+    """Load lowercased city_name → city_id mapping from the database.
+
+    Used as a fallback when a venue alias is not found.
+
+    Args:
+        conn: Active database connection.
+
+    Returns:
+        Dict mapping lowercase city_name → city_id.
+    """
+    cur = conn.execute("SELECT city_id, city_name FROM city")
+    return {row["city_name"].lower(): row["city_id"] for row in cur}
+
+
+def load_city_abbrev_lookup_v2(conn: sqlite3.Connection) -> dict[int, str]:
+    """Load city_id → city_abbrev mapping from the database.
+
+    Args:
+        conn: Active database connection.
+
+    Returns:
+        Dict mapping city_id → city_abbrev.
+    """
+    cur = conn.execute("SELECT city_id, city_abbrev FROM city WHERE city_abbrev IS NOT NULL")
+    return {row["city_id"]: row["city_abbrev"] for row in cur}
+
+
+def _generate_utm_link(
+    event_link: str, city_abbrev: str, event_date_iso: str, post_type: str
+) -> str:
+    """Generate a UTM-tagged link for an event.
+
+    Args:
+        event_link: Original event URL.
+        city_abbrev: City abbreviation (e.g., "BOS").
+        event_date_iso: Event date in ISO format (YYYY-MM-DD).
+        post_type: One of "grid", "story_reminder", "story_dayof".
+
+    Returns:
+        URL with UTM parameters appended.
+    """
+    date_compact = event_date_iso.replace("-", "")
+    utm_content = "story" if post_type.startswith("story") else "grid"
+    params = {
+        "utm_source": "instagram",
+        "utm_medium": "social",
+        "utm_content": utm_content,
+        "utm_campaign": f"{city_abbrev}_{date_compact}_{post_type}",
+    }
+
+    parsed = urlparse(event_link)
+    # Preserve any existing query params
+    existing = parse_qs(parsed.query, keep_blank_values=True)
+    existing.update(params)
+    new_query = urlencode(existing, doseq=True)
+    return urlunparse(parsed._replace(query=new_query))
+
+
+def _sync_event_tags(
+    cursor: sqlite3.Cursor,
+    event_id: int,
+    scraped_tags: list[str],
+    tag_lookup: dict[str, int],
+    sold_out_tag_id: int | None,
+) -> None:
+    """Sync event_tag rows for an event (excluding sold_out, managed separately).
+
+    Adds missing tags, removes stale ones.
+
+    Args:
+        cursor: Active database cursor.
+        event_id: The event's ID.
+        scraped_tags: Tag names from the scraper.
+        tag_lookup: tag_name → tag_id mapping.
+        sold_out_tag_id: tag_id for "sold out" (excluded from sync).
+    """
+    # Resolve scraped tag names → tag_ids
+    desired_ids: set[int] = set()
+    for tag_name in scraped_tags:
+        tid = tag_lookup.get(tag_name)
+        if tid is not None:
+            desired_ids.add(tid)
+        else:
+            logger.debug(f"Unknown tag '{tag_name}' — skipping")
+
+    # Current tags in DB (excluding sold_out)
+    cursor.execute(
+        "SELECT tag_id FROM event_tag WHERE event_id = ?", (event_id,)
+    )
+    current_ids = {row[0] for row in cursor.fetchall()}
+    if sold_out_tag_id is not None:
+        current_ids.discard(sold_out_tag_id)
+
+    # Insert missing
+    for tid in desired_ids - current_ids:
+        cursor.execute(
+            "INSERT OR IGNORE INTO event_tag (event_id, tag_id) VALUES (?, ?)",
+            (event_id, tid),
+        )
+
+    # Remove stale
+    for tid in current_ids - desired_ids:
+        cursor.execute(
+            "DELETE FROM event_tag WHERE event_id = ? AND tag_id = ?",
+            (event_id, tid),
+        )
+
+
+def upsert_events_v2(
+    events: list[Event], db_path: Optional[Path] = None
+) -> dict:
+    """Insert or update events into the v2 normalized schema.
+
+    Args:
+        events: List of scraped Event objects.
+        db_path: Path to the database file.
+
+    Returns:
+        Summary dict with keys: inserted, updated, sold_out_changed,
+        unknown_venues, skipped, total.
+    """
+    conn = get_v2_connection(db_path)
+    venue_alias_lookup = load_venue_alias_lookup_v2(conn)
+    tag_lookup = load_tag_lookup_v2(conn)
+    city_name_lookup = load_city_name_lookup_v2(conn)
+    city_abbrev_lookup = load_city_abbrev_lookup_v2(conn)
+
+    sold_out_tag_id = tag_lookup.get("sold out")
+
+    inserted = 0
+    updated = 0
+    sold_out_changed = 0
+    unknown_venues: list[str] = []
+    venues_created = 0
+    skipped = 0
+
+    try:
+        cursor = conn.cursor()
+        now = datetime.now().isoformat()
+
+        for event in events:
+            # --- 1. Resolve venue → (venue_id, city_id) ---
+            venue_id: int | None = None
+            city_id: int | None = None
+            location = event.location or ""
+
+            if location and location in venue_alias_lookup:
+                venue_id, city_id = venue_alias_lookup[location]
+            elif location:
+                # Unknown venue — try to auto-create using city from metadata
+                logger.warning(f"Unknown venue: '{location}' — attempting auto-create")
+                unknown_venues.append(location)
+
+                # Try to resolve city_id from event.city (scraped from metadata)
+                auto_city_id = None
+                if event.city:
+                    auto_city_id = city_name_lookup.get(event.city.lower())
+
+                if auto_city_id is not None:
+                    # Auto-create venue
+                    cursor.execute(
+                        """INSERT INTO venue (city_id, venue_name, notes)
+                           VALUES (?, ?, 'auto-created')""",
+                        (auto_city_id, location),
+                    )
+                    new_venue_id = cursor.lastrowid
+                    # Auto-create alias
+                    cursor.execute(
+                        "INSERT INTO venue_alias (alias, venue_id) VALUES (?, ?)",
+                        (location, new_venue_id),
+                    )
+                    # Update in-memory lookup so duplicates in this batch reuse it
+                    venue_alias_lookup[location] = (new_venue_id, auto_city_id)
+                    venue_id = new_venue_id
+                    city_id = auto_city_id
+                    venues_created += 1
+                    logger.info(
+                        f"Auto-created venue '{location}' (venue_id={new_venue_id}, "
+                        f"city_id={auto_city_id})"
+                    )
+                # else: venue_id stays None, city fallback below may still resolve city_id
+
+            # Special case: "Online" tag → use Online city
+            if "Online" in event.tags:
+                online_city_id = city_name_lookup.get("online")
+                if online_city_id is not None:
+                    city_id = online_city_id
+
+            # City name fallback: try matching event.city against city_name_lookup
+            if city_id is None and event.city:
+                city_id = city_name_lookup.get(event.city.lower())
+
+            if city_id is None:
+                logger.error(
+                    f"Cannot resolve city for event '{event.full_title}' "
+                    f"(location='{location}') — skipping"
+                )
+                skipped += 1
+                continue
+
+            # --- 2. Normalize event_type ---
+            event_type = EVENT_TYPE_MAP.get(
+                event.event_type or "", EVENT_TYPE_DEFAULT
+            )
+
+            # --- 3. Determine sold_out ---
+            sold_out = event.sale_status == "SOLD_OUT"
+
+            # --- 4. Date ---
+            event_date = event.date_iso or event.date
+
+            # --- 5. City abbreviation for UTM ---
+            city_abbrev = city_abbrev_lookup.get(city_id, "UNK")
+
+            # --- 6. Check existence ---
+            cursor.execute(
+                "SELECT event_id, sold_out FROM event WHERE event_link = ?",
+                (event.link,),
+            )
+            existing = cursor.fetchone()
+
+            if existing is None:
+                # --- INSERT new event ---
+                cursor.execute(
+                    """INSERT INTO event
+                       (city_id, venue_id, event_date, event_day_of_week,
+                        event_start_time, event_type, event_link,
+                        sold_out, is_dating, first_scraped_at, last_checked_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        city_id,
+                        venue_id,
+                        event_date,
+                        event.day_of_week,
+                        event.start_time,
+                        event_type,
+                        event.link,
+                        sold_out,
+                        event.is_dating,
+                        now,
+                        now,
+                    ),
+                )
+                new_event_id = cursor.lastrowid
+
+                # Create market_task row with UTM links
+                cursor.execute(
+                    """INSERT INTO market_task
+                       (event_id, utm_link_grid, utm_link_story_reminder,
+                        utm_link_story_dayof)
+                       VALUES (?, ?, ?, ?)""",
+                    (
+                        new_event_id,
+                        _generate_utm_link(event.link, city_abbrev, event_date, "grid"),
+                        _generate_utm_link(event.link, city_abbrev, event_date, "story_reminder"),
+                        _generate_utm_link(event.link, city_abbrev, event_date, "story_dayof"),
+                    ),
+                )
+
+                # Insert event_tag rows
+                for tag_name in event.tags:
+                    tid = tag_lookup.get(tag_name)
+                    if tid is not None:
+                        cursor.execute(
+                            "INSERT OR IGNORE INTO event_tag (event_id, tag_id) VALUES (?, ?)",
+                            (new_event_id, tid),
+                        )
+
+                # If sold out, add "sold out" tag
+                if sold_out and sold_out_tag_id is not None:
+                    cursor.execute(
+                        "INSERT OR IGNORE INTO event_tag (event_id, tag_id) VALUES (?, ?)",
+                        (new_event_id, sold_out_tag_id),
+                    )
+
+                inserted += 1
+
+            else:
+                # --- UPDATE existing event ---
+                existing_event_id = existing["event_id"]
+                was_sold_out = bool(existing["sold_out"])
+
+                update_fields = {
+                    "city_id": city_id,
+                    "venue_id": venue_id,
+                    "event_date": event_date,
+                    "event_day_of_week": event.day_of_week,
+                    "event_start_time": event.start_time,
+                    "event_type": event_type,
+                    "sold_out": sold_out,
+                    "is_dating": event.is_dating,
+                    "last_checked_at": now,
+                }
+
+                # If sold_out changed, also update status_changed_at
+                if sold_out != was_sold_out:
+                    update_fields["status_changed_at"] = now
+                    sold_out_changed += 1
+
+                    # Toggle sold_out tag
+                    if sold_out and sold_out_tag_id is not None:
+                        cursor.execute(
+                            "INSERT OR IGNORE INTO event_tag (event_id, tag_id) VALUES (?, ?)",
+                            (existing_event_id, sold_out_tag_id),
+                        )
+                    elif not sold_out and sold_out_tag_id is not None:
+                        cursor.execute(
+                            "DELETE FROM event_tag WHERE event_id = ? AND tag_id = ?",
+                            (existing_event_id, sold_out_tag_id),
+                        )
+
+                set_clause = ", ".join(f"{k} = ?" for k in update_fields)
+                values = list(update_fields.values()) + [event.link]
+                cursor.execute(
+                    f"UPDATE event SET {set_clause} WHERE event_link = ?",
+                    values,
+                )
+
+                # Sync tags (excluding sold_out)
+                _sync_event_tags(
+                    cursor,
+                    existing_event_id,
+                    event.tags,
+                    tag_lookup,
+                    sold_out_tag_id,
+                )
+
+                updated += 1
+
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {
+        "inserted": inserted,
+        "updated": updated,
+        "sold_out_changed": sold_out_changed,
+        "unknown_venues": unknown_venues,
+        "venues_created": venues_created,
+        "skipped": skipped,
+        "total": len(events),
+    }
+
+
+def get_event_count_v2(db_path: Optional[Path] = None) -> int:
+    """Get total event count from the v2 event table.
+
+    Args:
+        db_path: Path to the database file.
+
+    Returns:
+        Total event count.
+    """
+    conn = get_v2_connection(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM event")
         return cursor.fetchone()[0]
     finally:
         conn.close()

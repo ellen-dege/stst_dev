@@ -17,6 +17,7 @@ from .config import (
     EVENT_TYPES,
     SALE_OPTIONS,
     SELENIUM_TIMEOUT,
+    SKIP_TITLES,
     TAG_OPTIONS,
     TARGET_URL,
 )
@@ -93,6 +94,24 @@ def _extract_location_from_metadata(metadata_text: str) -> str:
     return ""
 
 
+def _extract_city_from_metadata(metadata_text: str) -> str:
+    """Extract city name from metadata (text after '(map)').
+
+    The metadata format is typically: "EventType, Venue, (map) City"
+
+    Args:
+        metadata_text: Cleaned metadata string.
+
+    Returns:
+        The city name, or empty string if not found.
+    """
+    idx = metadata_text.lower().find("(map)")
+    if idx == -1:
+        return ""
+    after_map = metadata_text[idx + 5:].strip().strip(",").strip()
+    return after_map
+
+
 def _extract_event_type_from_tag_links(tag_hrefs: list[str]) -> str:
     """Extract event type from tag link URLs.
 
@@ -150,6 +169,45 @@ def _extract_start_time_from_tag_links(tag_hrefs: list[str]) -> str:
         # Match time patterns like "7:00 pm", "12:30 am"
         if re.match(r"^\d{1,2}:\d{2}\s*(am|pm)$", tag_value, re.IGNORECASE):
             return tag_value
+
+    return ""
+
+
+def _extract_start_time_from_event_page(
+    driver: webdriver.Chrome, event_url: str, timeout: int = SELENIUM_TIMEOUT
+) -> str:
+    """Fetch start time from an individual event page.
+
+    Event pages contain a description with format:
+    "EVENT START-END | 7:00 pm - 9:00 pm ET"
+
+    Args:
+        driver: Existing Chrome WebDriver instance.
+        event_url: URL of the individual event page.
+        timeout: Timeout in seconds for page load.
+
+    Returns:
+        The start time string (e.g., "7:00 pm"), or empty string if not found.
+    """
+    import re
+
+    try:
+        driver.get(event_url)
+        excerpt_elem = WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located(
+                (By.CLASS_NAME, CSS_SELECTORS["event_detail_excerpt"])
+            )
+        )
+        text = excerpt_elem.text
+        match = re.search(
+            r"EVENT\s+START[\s\-\u2013\u2014]*END\s*\|\s*(\d{1,2}:\d{2}\s*(?:am|pm))",
+            text,
+            re.IGNORECASE,
+        )
+        if match:
+            return match.group(1).strip().lower()
+    except Exception as e:
+        logger.warning(f"Could not fetch start time from {event_url}: {e}")
 
     return ""
 
@@ -243,10 +301,14 @@ def _parse_event_metadata(text: str, metadata_text: str = "") -> dict:
     elif "sale" in text_lower:
         sale_status = "SALE"
 
+    # Extract city from metadata (text after "(map)")
+    city = _extract_city_from_metadata(metadata_text) if metadata_text else ""
+
     return {
         "full_title": full_title,
         "date": date,
         "location": location,
+        "city": city,
         "tags": tags,
         "is_dating": is_dating,
         "sale_status": sale_status,
@@ -305,6 +367,12 @@ def scrape_events(
             if not title:
                 continue  # Skip empty titles
 
+            # Skip non-event listings (e.g., gift cards)
+            title_lower = title.lower()
+            if any(skip in title_lower for skip in SKIP_TITLES):
+                logger.debug(f"Skipping non-event listing: {title}")
+                continue
+
             # Get metadata text for sale status detection
             try:
                 metadata_elem = card.find_element(
@@ -344,15 +412,35 @@ def scrape_events(
                 full_title=title,
                 date=parsed["date"],
                 location=location,
+                city=parsed.get("city") or None,
                 tags=tags,
                 is_dating=is_dating,
                 sale_status=parsed["sale_status"],
                 link=link or "",
                 start_time=start_time or None,
+                event_type=event_type or None,
             )
             events.append(event)
 
         logger.info(f"Successfully scraped {len(events)} events")
+
+        # Second pass: fetch start times from individual event pages
+        missing = [
+            (i, ev) for i, ev in enumerate(events) if not ev.start_time and ev.link
+        ]
+        if missing:
+            driver.set_page_load_timeout(30)
+            logger.info(
+                f"Fetching start times from {len(missing)} individual event page(s)"
+            )
+            for idx, ev in missing:
+                start_time = _extract_start_time_from_event_page(
+                    driver, ev.link, timeout
+                )
+                if start_time:
+                    events[idx].start_time = start_time
+                    logger.debug(f"Found start time '{start_time}' for: {ev.full_title}")
+
         return events
 
     except Exception as e:

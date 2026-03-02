@@ -34,6 +34,12 @@ tasks:
 
   # New tasks for scraper and dashboard
 
+  seed:
+    desc: Seed v2 database from schema.sql and seed_data.yaml
+    deps: [install-poetry]
+    cmds:
+      - poetry run python -m scripts.seed_db
+
   refresh:
     desc: Scrape website and update database
     deps: [install-poetry]

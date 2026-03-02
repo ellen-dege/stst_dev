@@ -16,6 +16,7 @@ TARGET_URL = "https://www.skipthesmalltalk.com/public-events?category=All"
 CSS_SELECTORS = {
     "event_title_links": "summary-title-link",
     "event_metadata": "summary-item-record-type-store-item",
+    "event_detail_excerpt": "ProductItem-details-excerpt",
 }
 
 # Tag options for categorizing events (extracted from title text)
@@ -46,6 +47,19 @@ EVENT_TYPES = [
     "Women",             # Added as tag (e.g., "All Women's" events)
     "BIPOC",             # Added as tag
 ]
+
+# Event type mapping (scraped event_type → normalized value for v2 DB)
+EVENT_TYPE_MAP = {
+    "Open to Everyone": "Regular",
+    "Dating": "Dating",
+    "LGBTQIA+": "LGBTQIA+",
+    "Women": "Women",
+    "BIPOC": "BIPOC",
+}
+EVENT_TYPE_DEFAULT = "Regular"
+
+# Titles to skip (non-event listings like gift cards)
+SKIP_TITLES = ["gift card"]
 
 # Sale status options
 SALE_OPTIONS = ["Sale", "sale", "SALE", "SOLD OUT", "Sold Out", "sold out"]
