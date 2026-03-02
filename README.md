@@ -243,6 +243,16 @@ task seed          # Full rebuild — wipes and recreates everything (use for sc
 
 A `ticket_sync.py` script will sync ticket sales and attendance data from the team's Google Sheet into the `event` table (`tickets_sold`, `ticket_threshold`, `num_attended`). See `STST_DBv2_plan.md` for details.
 
+### Future: Publish to Google Sheets
+
+A `task publish` command could export a read-only view of the database to a shared Google Sheet for broader team access, with tabs such as:
+
+- **Upcoming Events** — validated upcoming events with date, city, venue, facilitator, type, tags, link, and sold-out status
+- **Marketing Tasks** — a working copy of upcoming events with the full marketing task checklist as columns (filled in independently of the DB)
+- **Newsletter Updates** — events grouped by region or recently added, for drafting newsletter content
+
+This would use a service account for authentication (credentials gitignored) and could be triggered manually or automatically after `task refresh`.
+
 ## Build Status
 
 Per `STST_DBv2_plan.md`:
