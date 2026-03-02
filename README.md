@@ -1,18 +1,6 @@
 # STST Events Scraper & Dashboard
 
-A Python application for scraping and managing event data from the [Skip the Small Talk](https://www.skipthesmalltalk.com) website. Features a Streamlit dashboard for visualization and task management.
-
-## Features
-
-- Web scraper using Selenium to extract event data
-- SQLite database for persistent storage
-- Streamlit dashboard with:
-  - Upcoming events (filterable by location, tags, dating)
-  - Newly added events
-  - Sale status tracking (on sale / sold out)
-  - Social media checklist per event
-- Google Sheets integration for ticket/attendance data (TODO)
-- Docker support for portable deployment
+A local Python tool for scraping and managing event data from the [Skip the Small Talk](https://www.skipthesmalltalk.com) website. Tracks events, venues, facilitators, and social media marketing tasks in a local SQLite database, with a Streamlit dashboard for visualization and workflow management.
 
 ## Requirements
 
@@ -27,10 +15,13 @@ A Python application for scraping and managing event data from the [Skip the Sma
 # Install dependencies
 task install-poetry
 
+# Initialize database (first time only)
+task seed
+
 # Scrape events from website
 task refresh
 
-# Launch dashboard (default task)
+# Launch dashboard
 task dashboard
 ```
 
@@ -39,12 +30,26 @@ Access the dashboard at `http://localhost:8501`
 ## Commands
 
 ```bash
-task dashboard      # Launch Streamlit dashboard
-task refresh        # Scrape website and update database
-task refresh-debug  # Scrape with browser visible (debugging)
-task notebook       # Launch Jupyter notebook
-task clean          # Remove cache files
-task teardown       # Delete virtual environment
+# Database
+task seed              # Initialize database from schema.sql and seed_data.yaml (wipes existing data)
+task seed-update       # Upsert cities/venues/facilitators/tags from seed_data.yaml (preserves event data)
+
+# Scraper
+task refresh           # Scrape website and update database
+task refresh-debug     # Scrape with browser visible (debugging)
+
+# Validation
+task validate-new      # Review and validate newly scraped events (sets event.validated)
+task validate-marketing  # Confirm event details on site before marketing tasks (sets market_task.validated)
+
+# Dashboard
+task dashboard         # Launch Streamlit dashboard (default task)
+
+# Dev
+task db                # Open SQLite database in interactive shell
+task notebook          # Launch Jupyter notebook
+task clean             # Remove Python cache files
+task teardown          # Delete virtual environment
 ```
 
 ### Docker
@@ -53,204 +58,208 @@ task teardown       # Delete virtual environment
 task docker-build   # Build Docker image
 task docker-run     # Run dashboard in Docker
 task docker-refresh # Run scraper in Docker
+task docker-down    # Stop Docker containers
 ```
 
-## Streamlit Cloud Deployment (TODO)
+## Architecture
 
-For team access without running locally, deploy to [Streamlit Community Cloud](https://streamlit.io/cloud) (free):
+The system has three layers:
 
-1. Push this repo to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub
-3. Click "New app" and select:
-   - Repository: `your-username/stst_dev`
-   - Branch: `main`
-   - Main file path: `dashboard/app.py`
-4. Click "Deploy"
-
-### Optional: Add Authentication
-
-To restrict access to team members, add to `dashboard/app.py`:
-
-```python
-import streamlit as st
-
-# Simple password protection
-def check_password():
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
-
-    if not st.session_state.authenticated:
-        password = st.text_input("Password", type="password")
-        if password == st.secrets["password"]:
-            st.session_state.authenticated = True
-            st.rerun()
-        elif password:
-            st.error("Incorrect password")
-        st.stop()
-
-check_password()
-```
-
-Then add a `.streamlit/secrets.toml` file (gitignored):
-```toml
-password = "your-team-password"
-```
-
-In Streamlit Cloud, add the secret via the app settings.
-
-## Google Sheets Integration (TODO)
-
-The dashboard integrates with a Google Sheet containing ticket/attendance data from Squarespace. This provides:
-
-- Ticket counts (Man/Woman/Understudy)
-- Links to attendance Google Docs
-- Canceled event detection (via strikethrough formatting)
-- Notes from guest lists
-
-### Setup Google Cloud Service Account
-
-1. **Create a Google Cloud Project**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project (e.g., "stst-dashboard")
-   - Note the project ID
-
-2. **Enable the Google Sheets API**
-   - In the Cloud Console, go to "APIs & Services" → "Library"
-   - Search for "Google Sheets API" and enable it
-   - Also enable "Google Drive API" (needed for access)
-
-3. **Create a Service Account**
-   - Go to "APIs & Services" → "Credentials"
-   - Click "Create Credentials" → "Service Account"
-   - Name it (e.g., "stst-sheets-reader")
-   - Skip optional permissions, click "Done"
-
-4. **Generate a Key**
-   - Click on your new service account
-   - Go to "Keys" tab → "Add Key" → "Create new key"
-   - Choose JSON format, download the file
-   - **Keep this file secure — never commit it to git**
-
-5. **Share the Sheet with the Service Account**
-   - Open your Google Sheet
-   - Click "Share"
-   - Add the service account email (looks like `name@project-id.iam.gserviceaccount.com`)
-   - Give it "Viewer" access (read-only)
-
-### Local Development Setup
-
-Option A: Environment variable (recommended)
-```bash
-# Add to your shell profile or .env file
-export GOOGLE_SERVICE_ACCOUNT_JSON='{"type": "service_account", ...}'
-```
-
-Option B: File path
-```bash
-# Save the JSON file outside the repo, reference by path
-export GOOGLE_SERVICE_ACCOUNT_FILE='/path/to/credentials.json'
-```
-
-Also set the Sheet ID:
-```bash
-# The Sheet ID is in the URL: https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit
-export STST_ATTENDANCE_SHEET_ID='your-sheet-id-here'
-```
-
-### Streamlit Cloud Setup
-
-In Streamlit Cloud, add secrets via the app settings:
-
-```toml
-# .streamlit/secrets.toml (local) or Streamlit Cloud secrets UI
-
-[google]
-sheet_id = "your-sheet-id-here"
-
-[google.service_account]
-type = "service_account"
-project_id = "your-project-id"
-private_key_id = "..."
-private_key = "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-client_email = "name@project-id.iam.gserviceaccount.com"
-client_id = "..."
-auth_uri = "https://accounts.google.com/o/oauth2/auth"
-token_uri = "https://oauth2.googleapis.com/token"
-# ... rest of service account JSON fields
-```
-
-### Dependencies
-
-When implementing, add to `pyproject.toml`:
-```bash
-poetry add gspread google-auth
-```
-
-### Data Mapping
-
-| Sheet Column | Description |
-|--------------|-------------|
-| Event Names | Matches `events.full_title` |
-| Event Date | Event date |
-| Attendee Counts | Total ticket count |
-| Man Tix / Woman Tix | Gendered ticket counts |
-| Man (Understudy) / Woman (Understudy) | Understudy counts |
-| URL | Link to attendance Google Doc |
-| City (from Guest List) | City |
-| Notes (from Guest List) | Notes |
-
-Strikethrough formatting on a row indicates a canceled event.
-
-## Database Schema
-
-```mermaid
-erDiagram
-    events ||--o{ social_media_tasks : "has"
-
-    events {
-        int id PK
-        text full_title
-        text date
-        text day_of_week
-        text location
-        text city
-        text tags "JSON array"
-        bool is_dating
-        text sale_status "SALE, SOLD_OUT, or NULL"
-        text link UK
-        timestamp first_seen_at
-        timestamp last_seen_at
-    }
-
-    social_media_tasks {
-        int id PK
-        int event_id FK
-        text task_type "instagram, facebook, etc."
-        bool completed
-        timestamp completed_at
-    }
-```
+1. **`scraper.py`** — scrapes the STST website, upserts event records into SQLite, detects new events and sold-out status changes, auto-creates `market_task` rows for new events
+2. **`output.py`** *(planned)* — queries the database and generates plain-text Canva lines and social media post content
+3. **`dashboard/app.py`** *(in progress)* — local Streamlit dashboard for viewing events, tracking marketing task completion, and surfacing promotion priorities
 
 ## Project Structure
 
 ```
 stst_dev/
 ├── stst_dev/                    # Python package
-│   ├── config.py                # Configuration constants
-│   ├── models.py                # Data models (Event, SocialMediaTask)
+│   ├── __init__.py
 │   ├── scraper.py               # Web scraper (Selenium)
-│   └── database.py              # SQLite operations
+│   ├── database.py              # SQLite operations
+│   ├── models.py                # Data models
+│   └── config.py                # Configuration constants
 ├── dashboard/
 │   └── app.py                   # Streamlit dashboard
 ├── scripts/
-│   └── refresh_events.py        # CLI script to run scraper
+│   ├── refresh_events.py        # CLI: run scraper
+│   ├── seed_db.py               # CLI: initialize database from scratch
+│   ├── seed_update.py           # CLI: upsert lookup table data without wiping events
+│   ├── validate_new.py          # CLI: review and validate newly scraped events
+│   └── validate_marketing.py    # CLI: confirm event details before marketing tasks
 ├── data/
+│   ├── seed_data.yaml           # Manually maintained: cities, venues, facilitators, tags
 │   └── events.db                # SQLite database (gitignored)
+├── schema.sql                   # v2 database DDL
+├── STST_DBv2_plan.md            # Architecture and build plan
 ├── Dockerfile
 ├── docker-compose.yml
 ├── pyproject.toml
 └── Taskfile.yml
 ```
+
+## Database Schema
+
+Seven tables. Lookup tables (`city`, `venue`, `facilitator`, `tag`) are seeded from `seed_data.yaml`. Event data is populated by the scraper.
+
+```mermaid
+erDiagram
+    city ||--o{ venue : "has"
+    city ||--o{ facilitator : "has"
+    city ||--o{ event : "hosts"
+    venue ||--o{ venue_alias : "has"
+    venue ||--o{ event : "hosts"
+    facilitator ||--o{ event : "runs"
+    event ||--|| market_task : "has"
+    event ||--o{ event_tag : "tagged with"
+    tag ||--o{ event_tag : "applied to"
+
+    city {
+        int city_id PK
+        text city_name
+        text city_abbrev
+        text state
+        text country
+        text region
+        text time_zone
+        bool has_dedicated_ig
+        text ig_handle
+        text website_city_name "label used on STST website (e.g. Boston for Cambridge/Somerville)"
+    }
+
+    facilitator {
+        int facilitator_id PK
+        int city_id FK
+        text facilitator_name
+        text facilitator_email_1
+        text facilitator_email_2
+        text ig_handle
+        bool tag_on_ig
+        bool is_active
+    }
+
+    venue {
+        int venue_id PK
+        int city_id FK
+        text venue_name
+        text venue_ig_handle_1
+        text venue_ig_handle_2
+        text venue_website
+        text venue_address
+        text venue_fb_name
+        text venue_contact_emails "semicolon-separated"
+        text notes
+    }
+
+    venue_alias {
+        text alias PK
+        int venue_id FK
+    }
+
+    event {
+        int event_id PK
+        int city_id FK
+        int venue_id FK
+        int facilitator_id FK
+        date event_date
+        text event_day_of_week
+        time event_start_time
+        text event_type
+        text event_link UK
+        bool sold_out
+        bool is_dating
+        bool validated "set via task validate-new"
+        int tickets_sold
+        int ticket_threshold
+        int num_attended
+        int man_tix
+        int woman_tix
+        int man_tix_understudy
+        int woman_tix_understudy
+        datetime first_scraped_at
+        datetime last_checked_at
+        datetime status_changed_at
+    }
+
+    market_task {
+        int market_task_id PK
+        int event_id FK
+        bool validated "confirm details on site before marketing; set via task validate-marketing"
+        bool weekly_graphic_created
+        bool standalone_graphic_created
+        bool added_to_biweekly_upcoming
+        bool grid_post_scheduled
+        bool venue_collab_sent
+        bool venue_collab_accepted
+        bool story_postlive
+        bool story_reminder
+        bool story_dayof
+        bool extra_promo_pushed
+        bool meetup_RSVPs
+        bool on_venue_site
+        bool on_venue_socials
+        bool photo_link_sent
+        text utm_link_grid
+        text utm_link_story_reminder
+        text utm_link_story_dayof
+        text notes
+        datetime last_updated_at
+    }
+
+    tag {
+        int tag_id PK
+        text tag_name UK
+        text tag_category
+    }
+
+    event_tag {
+        int event_tag_id PK
+        int event_id FK
+        int tag_id FK
+    }
+```
+
+### City/Website Name Mapping
+
+The STST website uses broader city labels that don't always match actual city names. `city.website_city_name` stores the label used on the website when it differs from `city.city_name`. The scraper resolves city via venue lookup first (`venue_alias` → `venue` → `city`), using `website_city_name` as a fallback.
+
+| city_name | website_city_name |
+|---|---|
+| Cambridge | Boston |
+| Somerville | Boston |
+| New Haven | Connecticut |
+| New London | Connecticut |
+
+## Seed Data
+
+`data/seed_data.yaml` is the source of truth for manually maintained lookup data. Edit it to add cities, venues, facilitators, or tags, then run:
+
+```bash
+task seed-update   # Safe to run against a live database — preserves all event data
+task seed          # Full rebuild — wipes and recreates everything (use for schema changes)
+```
+
+## Google Sheets / Ticket Sync (planned)
+
+A `ticket_sync.py` script will sync ticket sales and attendance data from the team's Google Sheet into the `event` table (`tickets_sold`, `ticket_threshold`, `num_attended`). See `STST_DBv2_plan.md` for details.
+
+## Build Status
+
+Per `STST_DBv2_plan.md`:
+
+- [x] Define schema and write DDL
+- [x] Seed lookup tables (city, venue, facilitator, tag)
+- [ ] Build and test scraper v2 (UTM link generation, market_task auto-creation)
+- [ ] Build and test ticket_sync.py
+- [ ] Build and test output.py
+- [ ] Streamlit dashboard v2
+
+## Security
+
+This repository is intended for public release. See `CLAUDE.md` for full security guidelines. Never commit:
+- API keys, tokens, or credentials
+- `.env` files
+- `data/*.db` files (already gitignored)
 
 ## License
 

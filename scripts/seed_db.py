@@ -24,17 +24,18 @@ def seed(db_path: Path = DB_PATH) -> None:
 
     cur = con.cursor()
 
-    # --- Cities & Venues ---
+    # --- Cities, Venues & Facilitators ---
     city_count = 0
     venue_count = 0
     alias_count = 0
+    facilitator_count = 0
 
     for city in data["cities"]:
         cur.execute(
             """INSERT INTO city
                (city_name, city_abbrev, state, country, region, time_zone,
-                has_dedicated_ig, ig_handle)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                has_dedicated_ig, ig_handle, website_city_name)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 city["city_name"],
                 city.get("city_abbrev"),
@@ -44,6 +45,7 @@ def seed(db_path: Path = DB_PATH) -> None:
                 city.get("time_zone"),
                 city.get("has_dedicated_ig", False),
                 city.get("ig_handle"),
+                city.get("website_city_name"),
             ),
         )
         city_id = cur.lastrowid
@@ -53,8 +55,8 @@ def seed(db_path: Path = DB_PATH) -> None:
             cur.execute(
                 """INSERT INTO venue
                    (city_id, venue_name, venue_ig_handle_1, venue_ig_handle_2,
-                    venue_website, venue_address, notes)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    venue_website, venue_address, venue_fb_name, venue_contact_emails, notes)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     city_id,
                     venue["venue_name"],
@@ -62,6 +64,8 @@ def seed(db_path: Path = DB_PATH) -> None:
                     venue.get("venue_ig_handle_2"),
                     venue.get("venue_website"),
                     venue.get("venue_address"),
+                    venue.get("venue_fb_name"),
+                    venue.get("venue_contact_emails"),
                     venue.get("notes"),
                 ),
             )
@@ -81,6 +85,24 @@ def seed(db_path: Path = DB_PATH) -> None:
                 )
                 alias_count += 1
 
+        for facilitator in city.get("facilitators", []):
+            cur.execute(
+                """INSERT INTO facilitator
+                   (city_id, facilitator_name, facilitator_email_1, facilitator_email_2,
+                    ig_handle, tag_on_ig, is_active)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    city_id,
+                    facilitator["facilitator_name"],
+                    facilitator.get("facilitator_email_1"),
+                    facilitator.get("facilitator_email_2"),
+                    facilitator.get("ig_handle"),
+                    facilitator.get("tag_on_ig", False),
+                    facilitator.get("is_active", True),
+                ),
+            )
+            facilitator_count += 1
+
     # --- Tags ---
     tag_count = 0
     for tag in data.get("tags", []):
@@ -97,6 +119,7 @@ def seed(db_path: Path = DB_PATH) -> None:
     print(f"  cities:        {city_count}")
     print(f"  venues:        {venue_count}")
     print(f"  venue_aliases: {alias_count}")
+    print(f"  facilitators:  {facilitator_count}")
     print(f"  tags:          {tag_count}")
 
 

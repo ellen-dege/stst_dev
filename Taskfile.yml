@@ -35,10 +35,33 @@ tasks:
   # New tasks for scraper and dashboard
 
   seed:
-    desc: Seed v2 database from schema.sql and seed_data.yaml
+    desc: Seed v2 database from schema.sql and seed_data.yaml (wipes existing data)
     deps: [install-poetry]
     cmds:
       - poetry run python -m scripts.seed_db
+
+  seed-update:
+    desc: Upsert cities/venues/facilitators/tags from seed_data.yaml (preserves event data)
+    deps: [install-poetry]
+    cmds:
+      - poetry run python -m scripts.seed_update
+
+  validate-new:
+    desc: Review and validate newly scraped events
+    deps: [install-poetry]
+    cmds:
+      - poetry run python -m scripts.validate_new
+
+  validate-marketing:
+    desc: Confirm event details on site before executing marketing tasks
+    deps: [install-poetry]
+    cmds:
+      - poetry run python -m scripts.validate_marketing
+
+  db:
+    desc: Open SQLite database in interactive shell
+    cmds:
+      - sqlite3 data/events.db
 
   refresh:
     desc: Scrape website and update database

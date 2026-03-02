@@ -11,17 +11,20 @@ CREATE TABLE IF NOT EXISTS city (
     country         TEXT    NOT NULL DEFAULT 'US',
     region          TEXT,
     time_zone       TEXT,
-    has_dedicated_ig BOOLEAN NOT NULL DEFAULT 0,
-    ig_handle       TEXT
+    has_dedicated_ig  BOOLEAN NOT NULL DEFAULT 0,
+    ig_handle         TEXT,
+    website_city_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS facilitator (
     facilitator_id   INTEGER PRIMARY KEY AUTOINCREMENT,
     city_id          INTEGER REFERENCES city(city_id),
     facilitator_name TEXT    NOT NULL,
-    facilitator_email TEXT,
+    facilitator_email_1 TEXT,
+    facilitator_email_2 TEXT,
     ig_handle        TEXT,
-    tag_on_ig        BOOLEAN NOT NULL DEFAULT 0
+    tag_on_ig        BOOLEAN NOT NULL DEFAULT 0,
+    is_active        BOOLEAN NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS venue (
@@ -30,9 +33,11 @@ CREATE TABLE IF NOT EXISTS venue (
     venue_name        TEXT    NOT NULL,
     venue_ig_handle_1 TEXT,
     venue_ig_handle_2 TEXT,
-    venue_website     TEXT,
-    venue_address     TEXT,
-    notes             TEXT
+    venue_website        TEXT,
+    venue_address        TEXT,
+    venue_fb_name        TEXT,
+    venue_contact_emails TEXT,
+    notes                TEXT
 );
 
 CREATE TABLE IF NOT EXISTS venue_alias (
@@ -52,6 +57,7 @@ CREATE TABLE IF NOT EXISTS event (
     event_link         TEXT     UNIQUE NOT NULL,
     sold_out           BOOLEAN  NOT NULL DEFAULT 0,
     is_dating          BOOLEAN  NOT NULL DEFAULT 0,
+    validated          BOOLEAN  NOT NULL DEFAULT 0,
     tickets_sold       INTEGER,
     ticket_threshold   INTEGER,
     num_attended       INTEGER,
@@ -65,17 +71,23 @@ CREATE TABLE IF NOT EXISTS event (
 );
 
 CREATE TABLE IF NOT EXISTS market_task (
-    market_task_id        INTEGER  PRIMARY KEY AUTOINCREMENT,
-    event_id              INTEGER  NOT NULL UNIQUE REFERENCES event(event_id),
-    graphic_created       BOOLEAN  NOT NULL DEFAULT 0,
-    grid_post_scheduled   BOOLEAN  NOT NULL DEFAULT 0,
-    venue_collab_sent     BOOLEAN  NOT NULL DEFAULT 0,
-    venue_collab_accepted BOOLEAN  NOT NULL DEFAULT 0,
-    story_postlive        BOOLEAN  NOT NULL DEFAULT 0,
-    story_reminder        BOOLEAN  NOT NULL DEFAULT 0,
-    story_dayof           BOOLEAN  NOT NULL DEFAULT 0,
-    extra_promo_pushed    BOOLEAN  NOT NULL DEFAULT 0,
-    photo_link_sent       BOOLEAN  NOT NULL DEFAULT 0,
+    market_task_id              INTEGER  PRIMARY KEY AUTOINCREMENT,
+    event_id                    INTEGER  NOT NULL UNIQUE REFERENCES event(event_id),
+    validated                   BOOLEAN  NOT NULL DEFAULT 0,
+    weekly_graphic_created      BOOLEAN  NOT NULL DEFAULT 0,
+    standalone_graphic_created  BOOLEAN  NOT NULL DEFAULT 0,
+    added_to_biweekly_upcoming  BOOLEAN  NOT NULL DEFAULT 0,
+    grid_post_scheduled         BOOLEAN  NOT NULL DEFAULT 0,
+    venue_collab_sent           BOOLEAN  NOT NULL DEFAULT 0,
+    venue_collab_accepted       BOOLEAN  NOT NULL DEFAULT 0,
+    story_postlive              BOOLEAN  NOT NULL DEFAULT 0,
+    story_reminder              BOOLEAN  NOT NULL DEFAULT 0,
+    story_dayof                 BOOLEAN  NOT NULL DEFAULT 0,
+    extra_promo_pushed          BOOLEAN  NOT NULL DEFAULT 0,
+    meetup_RSVPs                BOOLEAN  NOT NULL DEFAULT 0,
+    on_venue_site               BOOLEAN  NOT NULL DEFAULT 0,
+    on_venue_socials            BOOLEAN  NOT NULL DEFAULT 0,
+    photo_link_sent             BOOLEAN  NOT NULL DEFAULT 0,
     utm_link_grid         TEXT,
     utm_link_story_reminder TEXT,
     utm_link_story_dayof  TEXT,
