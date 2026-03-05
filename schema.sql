@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS city (
     time_zone       TEXT,
     has_dedicated_ig  BOOLEAN NOT NULL DEFAULT 0,
     ig_handle         TEXT,
-    website_city_name TEXT
+    website_city_name TEXT,
+    drive_folder_url  TEXT
 );
 
 CREATE TABLE IF NOT EXISTS facilitator (
@@ -87,7 +88,8 @@ CREATE TABLE IF NOT EXISTS market_task (
     meetup_RSVPs                BOOLEAN  NOT NULL DEFAULT 0,
     on_venue_site               BOOLEAN  NOT NULL DEFAULT 0,
     on_venue_socials            BOOLEAN  NOT NULL DEFAULT 0,
-    photo_link_sent             BOOLEAN  NOT NULL DEFAULT 0,
+    photo_link_sent_at          DATETIME,
+    content_uploaded            BOOLEAN  NOT NULL DEFAULT 0,
     utm_link_grid         TEXT,
     utm_link_story_reminder TEXT,
     utm_link_story_dayof  TEXT,

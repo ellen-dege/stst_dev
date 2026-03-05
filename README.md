@@ -46,6 +46,7 @@ task validate-marketing  # Confirm event details on site before marketing tasks 
 task dashboard         # Launch Streamlit dashboard (default task)
 
 # Dev
+task test              # Run test suite (pytest)
 task db                # Open SQLite database in interactive shell
 task notebook          # Launch Jupyter notebook
 task clean             # Remove Python cache files
@@ -87,6 +88,8 @@ stst_dev/
 │   ├── seed_update.py           # CLI: upsert lookup table data without wiping events
 │   ├── validate_new.py          # CLI: review and validate newly scraped events
 │   └── validate_marketing.py    # CLI: confirm event details before marketing tasks
+├── tests/
+│   └── test_database_v2.py      # Tests for UTM generation and upsert_events_v2
 ├── data/
 │   ├── seed_data.yaml           # Manually maintained: cities, venues, facilitators, tags
 │   └── events.db                # SQLite database (gitignored)
@@ -125,6 +128,7 @@ erDiagram
         bool has_dedicated_ig
         text ig_handle
         text website_city_name "label used on STST website (e.g. Boston for Cambridge/Somerville)"
+        text drive_folder_url "Google Drive upload link for this city"
     }
 
     facilitator {
@@ -198,7 +202,8 @@ erDiagram
         bool meetup_RSVPs
         bool on_venue_site
         bool on_venue_socials
-        bool photo_link_sent
+        datetime photo_link_sent_at "timestamp when photo link was sent; NULL = not yet sent"
+        bool content_uploaded "facilitator uploaded post-event content to Drive"
         text utm_link_grid
         text utm_link_story_reminder
         text utm_link_story_dayof
@@ -259,7 +264,7 @@ Per `STST_DBv2_plan.md`:
 
 - [x] Define schema and write DDL
 - [x] Seed lookup tables (city, venue, facilitator, tag)
-- [ ] Build and test scraper v2 (UTM link generation, market_task auto-creation)
+- [x] Build and test scraper v2 (UTM link generation, market_task auto-creation)
 - [ ] Build and test ticket_sync.py
 - [ ] Build and test output.py
 - [ ] Streamlit dashboard v2

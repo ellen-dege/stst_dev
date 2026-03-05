@@ -4,23 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Python application for scraping and managing event data from the Skip the Small Talk website. Features a Streamlit dashboard for visualization and task management, with SQLite for data persistence.
+Python application for scraping and managing event data from the Skip the Small Talk website. Tracks events, venues, facilitators, and social media marketing tasks in a local SQLite database (v2 normalized schema). Features a Streamlit dashboard for visualization and workflow management.
 
 ## Common Commands
 
 All commands use [Taskfile](https://taskfile.dev/):
 
 ```bash
-# Main workflow
-task dashboard      # Launch Streamlit dashboard (default task)
-task refresh        # Scrape website and update database
-task refresh-debug  # Scrape with browser visible (debugging)
+# Database
+task seed              # Initialize database from schema.sql and seed_data.yaml (wipes existing data)
+task seed-update       # Upsert cities/venues/facilitators/tags from seed_data.yaml (preserves event data)
 
-# Development
-task notebook       # Launch Jupyter notebook
-task install-poetry # Install Poetry virtual environment only
-task clean          # Remove Python cache and notebook checkpoints
-task teardown       # Delete virtual environment
+# Scraper
+task refresh           # Scrape website and update database
+task refresh-debug     # Scrape with browser visible (debugging)
+
+# Validation
+task validate-new      # Review and validate newly scraped events (sets event.validated)
+task validate-marketing  # Confirm event details on site before marketing tasks (sets market_task.validated)
+
+# Dashboard
+task dashboard         # Launch Streamlit dashboard (default task)
+
+# Dev
+task test              # Run test suite (pytest)
+task db                # Open SQLite database in interactive shell
+task notebook          # Launch Jupyter notebook
+task install-poetry    # Install Poetry virtual environment only
+task clean             # Remove Python cache and notebook checkpoints
+task teardown          # Delete virtual environment
 
 # Docker
 task docker-build   # Build Docker image
@@ -36,16 +48,24 @@ stst_dev/
 ├── stst_dev/                    # Python package
 │   ├── __init__.py
 │   ├── scraper.py               # Web scraper (Selenium)
-│   ├── database.py              # SQLite operations
-│   ├── models.py                # Data models (Event, SocialMediaTask)
+│   ├── database.py              # SQLite operations (v1 and v2 functions)
+│   ├── models.py                # Data models (Event)
 │   └── config.py                # Configuration constants
 ├── dashboard/
 │   └── app.py                   # Streamlit dashboard
 ├── scripts/
-│   └── refresh_events.py        # CLI script to run scraper
-├── notebooks/                   # Jupyter notebooks (legacy)
+│   ├── refresh_events.py        # CLI: run scraper
+│   ├── seed_db.py               # CLI: initialize database from scratch
+│   ├── seed_update.py           # CLI: upsert lookup data without wiping events
+│   ├── validate_new.py          # CLI: review and validate newly scraped events
+│   └── validate_marketing.py    # CLI: confirm event details before marketing tasks
+├── tests/
+│   └── test_database_v2.py      # Tests for UTM generation and upsert_events_v2
 ├── data/
+│   ├── seed_data.yaml           # Manually maintained: cities, venues, facilitators, tags
 │   └── events.db                # SQLite database (gitignored)
+├── schema.sql                   # v2 database DDL (source of truth for schema)
+├── STST_DBv2_plan.md            # Architecture and build plan
 ├── Dockerfile
 ├── docker-compose.yml
 ├── pyproject.toml
@@ -54,62 +74,49 @@ stst_dev/
 
 ### Key Components
 
-- **scraper.py**: Uses Selenium with headless Chrome to scrape events from skipthesmalltalk.com. Extracts titles, dates, locations, tags, and ticket links.
+- **scraper.py**: Uses Selenium with headless Chrome to scrape events from skipthesmalltalk.com. Extracts titles, dates, locations, tags, and ticket links. Calls `upsert_events_v2()`.
 
-- **database.py**: SQLite operations including:
-  - `init_db()` - Create tables
-  - `upsert_events()` - Insert/update events, track new additions
-  - `get_upcoming_events()` - Filter future events
-  - `get_new_events(days)` - Events added recently
-  - `mark_task_complete()` - Social media checklist management
+- **database.py**: SQLite operations. Contains both legacy v1 functions and the active v2 functions:
+  - `get_v2_connection()` — connection with foreign keys enabled
+  - `upsert_events_v2()` — insert/update events in the normalized schema; auto-creates `market_task` rows with UTM links
+  - `load_venue_alias_lookup_v2()`, `load_tag_lookup_v2()`, `load_city_name_lookup_v2()` — in-memory lookup tables
+  - `_generate_utm_link()` — builds UTM-tagged URLs for grid/story posts
 
-- **dashboard/app.py**: Streamlit dashboard with pages for:
-  - Upcoming Events (filterable by location, tags, dating)
-  - Newly Added Events
-  - Sale Status (events on sale or sold out)
-  - Social Media Checklist (per-event task tracking)
-  - Statistics
+- **seed_db.py / seed_update.py**: Read `data/seed_data.yaml` and populate the `city`, `venue`, `venue_alias`, `facilitator`, and `tag` tables.
 
-### Database Schema
+- **validate_new.py**: Interactive CLI to review newly scraped events and set `event.validated = 1`.
 
-```sql
--- Main events table
-CREATE TABLE events (
-    id INTEGER PRIMARY KEY,
-    full_title TEXT, date TEXT, day_of_week TEXT,
-    location TEXT, city TEXT, tags TEXT (JSON),
-    is_dating BOOLEAN, sale_status TEXT, link TEXT UNIQUE,
-    first_seen_at TIMESTAMP, last_seen_at TIMESTAMP
-);
+- **validate_marketing.py**: Interactive CLI to confirm event details on the STST site before starting marketing tasks; sets `market_task.validated = 1`.
 
--- Social media task tracking
-CREATE TABLE social_media_tasks (
-    id INTEGER PRIMARY KEY,
-    event_id INTEGER REFERENCES events(id),
-    task_type TEXT, completed BOOLEAN, completed_at TIMESTAMP
-);
-```
+- **dashboard/app.py**: Streamlit dashboard for viewing events and tracking marketing task completion.
+
+### Database Schema (v2)
+
+Seven tables. See `schema.sql` for full DDL. Summary:
+
+- **`city`** — lookup: cities where STST operates. Includes `drive_folder_url` for Google Drive upload links.
+- **`facilitator`** — lookup: one row per facilitator, linked to a city.
+- **`venue`** — lookup: one row per venue, linked to a city.
+- **`venue_alias`** — maps scraper location strings to canonical venue rows.
+- **`event`** — core table, populated by scraper. Includes `validated`, ticket fields (`tickets_sold`, `ticket_threshold`, `num_attended`), and dating ticket fields.
+- **`market_task`** — one row per event (auto-created on insert). Tracks marketing task completion booleans, UTM links, `photo_link_sent_at` (DATETIME), and `content_uploaded` (BOOL).
+- **`tag`** / **`event_tag`** — many-to-many tags (age group, affinity, status).
+
+Key design decisions:
+- `sold_out` is stored on `event` (fast queries) and also as a tag in `event_tag` (kept in sync by the scraper).
+- `market_task` rows are auto-created by `upsert_events_v2()` with UTM links generated at insert time.
+- `venue_alias` is the primary mechanism for resolving scraped location strings to `venue` and `city`.
+- `city.website_city_name` handles cases where the STST website uses a broader city label (e.g., "Boston" for Cambridge/Somerville/Boston events).
 
 ## Dependencies
 
 - Python 3.11+
 - Poetry for package management
-- Core: pandas, numpy, matplotlib, seaborn
+- Core: pandas, numpy
 - Web scraping: selenium, webdriver-manager
 - Dashboard: streamlit
 - Database: sqlite3 (stdlib)
-
-## Docker Usage
-
-```bash
-# Build and run dashboard
-docker-compose up --build
-
-# Run scraper manually
-docker-compose run --rm scraper
-
-# Access dashboard at http://localhost:8501
-```
+- Dev: pytest
 
 ## Security Guidelines
 

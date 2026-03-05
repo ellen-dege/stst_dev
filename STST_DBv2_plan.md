@@ -183,5 +183,6 @@ Junction table for the many-to-many relationship between events and tags. The sc
 3. Build and test `scraper.py` (including UTM link generation and market_task auto-creation)
 4. Build and test `ticket_sync.py` (Google Sheet integration for ticket sales and attendance)
 5. Build and test `output.py` (including story content blocks, UTM links, and ticket-driven queries)
-6. Add Streamlit dashboard when core scripts are stable (including ticket sales views and promotion coverage)
-7. *(Optional future)* Automate scraper and ticket sync to run on a daily/weekly schedule via GitHub Actions or a lightweight cloud instance
+6. Add Streamlit dashboard when core scripts are stable (including ticket sales views, promotion coverage, calendar view)
+7. Add Google Calendar API sync
+8. *(Optional future)* Automate scraper and ticket sync to run on a daily/weekly schedule via GitHub Actions or a lightweight cloud instance

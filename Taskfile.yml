@@ -58,6 +58,12 @@ tasks:
     cmds:
       - poetry run python -m scripts.validate_marketing
 
+  test:
+    desc: Run tests
+    deps: [install-poetry]
+    cmds:
+      - poetry run pytest tests/ -v
+
   db:
     desc: Open SQLite database in interactive shell
     cmds:
