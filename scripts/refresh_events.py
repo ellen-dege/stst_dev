@@ -73,9 +73,9 @@ def main() -> int:
         print(f"Total events in DB:      {count_after}")
         print("=" * 50)
 
-        # Unknown venues (auto-created)
+        # Unresolved venues (no alias match, city unknown — NOT inserted into DB)
         if result["unknown_venues"]:
-            print(f"\nAuto-created venues ({len(set(result['unknown_venues']))}):")
+            print(f"\nUnresolved venues — add aliases to fix ({len(set(result['unknown_venues']))}):")
             for v in sorted(set(result["unknown_venues"])):
                 print(f"  - {v}")
 

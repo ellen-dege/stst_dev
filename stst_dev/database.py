@@ -759,7 +759,6 @@ def upsert_events_v2(
             elif location:
                 # Unknown venue — try to auto-create using city from metadata
                 logger.warning(f"Unknown venue: '{location}' — attempting auto-create")
-                unknown_venues.append(location)
 
                 # Try to resolve city_id from event.city (scraped from metadata)
                 auto_city_id = None
@@ -788,7 +787,12 @@ def upsert_events_v2(
                         f"Auto-created venue '{location}' (venue_id={new_venue_id}, "
                         f"city_id={auto_city_id})"
                     )
-                # else: venue_id stays None, city fallback below may still resolve city_id
+                else:
+                    # city couldn't be resolved — venue skipped, event may be incomplete
+                    unknown_venues.append(location)
+                    logger.warning(
+                        f"Could not resolve city for unknown venue '{location}' — skipping auto-create"
+                    )
 
             # Special case: "Online" tag → use Online city
             if "Online" in event.tags:

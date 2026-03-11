@@ -37,27 +37,34 @@ class Event:
         if self.date and not self.day_of_week:
             self._parse_date_components()
 
+    _WEEKDAYS = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+
     def _parse_date_components(self):
         """Extract day of week from the date string."""
         if "," in self.date:
-            parts = self.date.split(",")
-            if len(parts) >= 1:
-                self.day_of_week = parts[0].strip()
+            first = self.date.split(",")[0].strip()
+            if first in self._WEEKDAYS:
+                self.day_of_week = first
+                return
+        # No weekday prefix in string — derive from parsed date
+        parsed = self.parsed_date
+        if parsed:
+            self.day_of_week = parsed.strftime("%A")
 
     @property
     def parsed_date(self) -> Optional[datetime]:
         """Parse the date string into a datetime object."""
         try:
-            # Handle format: "Monday, August 25, 2025"
             if "," in self.date:
-                # Remove day of week and parse
-                date_parts = self.date.split(", ", 1)
-                if len(date_parts) > 1:
-                    date_str = date_parts[1]
+                first = self.date.split(",")[0].strip()
+                if first in self._WEEKDAYS:
+                    # Format: "Monday, August 25, 2025" — strip weekday prefix
+                    date_str = self.date.split(", ", 1)[1]
                 else:
+                    # Format: "March 25, 2026" — no weekday prefix
                     date_str = self.date
                 return datetime.strptime(date_str, "%B %d, %Y")
-            # Handle format: "October 29, 2025" (no day of week)
+            # Format: "October 29, 2025" (no commas)
             return datetime.strptime(self.date, "%B %d, %Y")
         except ValueError:
             return None
