@@ -905,6 +905,9 @@ def upsert_events_v2(
                     "is_dating": event.is_dating,
                     "last_checked_at": now,
                 }
+                # Don't overwrite manually-corrected DB values with NULL from scraper.
+                # Booleans (sold_out, is_dating) and always-set fields are unaffected.
+                update_fields = {k: v for k, v in update_fields.items() if v is not None}
 
                 # If sold_out changed, also update status_changed_at
                 if sold_out != was_sold_out:
