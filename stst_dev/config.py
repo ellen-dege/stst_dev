@@ -24,6 +24,7 @@ TAG_OPTIONS = [
     "20s",
     "30s",
     "Millennials",
+    "Millennial",
     "Online",
     "BIPOC",
     "LGBTQIA+",
@@ -36,6 +37,15 @@ TAG_OPTIONS = [
     "Ace-Spectrum",
     "ace-spectrum",
 ]
+
+# Maps title strings to their canonical tag names (handles singular/plural and case variants)
+TAG_NORMALIZE = {
+    "Millennial": "Millennials",
+    "bi & pan": "Bi & Pan",
+    "poly": "Poly",
+    "monogamous": "Monogamous",
+    "ace-spectrum": "Ace-Spectrum",
+}
 
 # Event types (extracted from tag links with <br><br> prefix)
 # These determine is_dating and can also become tags

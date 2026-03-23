@@ -18,6 +18,7 @@ from .config import (
     SALE_OPTIONS,
     SELENIUM_TIMEOUT,
     SKIP_TITLES,
+    TAG_NORMALIZE,
     TAG_OPTIONS,
     TARGET_URL,
 )
@@ -285,10 +286,9 @@ def _parse_event_metadata(text: str, metadata_text: str = "") -> dict:
     tags = []
     for tag in TAG_OPTIONS:
         if tag in text:
-            # Normalize tag to standard form
-            normalized_tag = tag.capitalize() if tag.islower() else tag
-            if normalized_tag not in tags:
-                tags.append(normalized_tag)
+            canonical = TAG_NORMALIZE.get(tag, tag)
+            if canonical not in tags:
+                tags.append(canonical)
 
     # Note: is_dating is determined by event_type in scrape_events()
     is_dating = False
