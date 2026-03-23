@@ -107,49 +107,6 @@ class TestUpsertEventsV2Insert:
         assert not bool(row["sold_out"])
         conn.close()
 
-    def test_creates_market_task_row(self, tmp_path):
-        db = make_db(tmp_path)
-        upsert_events_v2([make_event()], db_path=db)
-
-        conn = sqlite3.connect(str(db))
-        conn.row_factory = sqlite3.Row
-        mt = conn.execute("SELECT * FROM market_task").fetchone()
-        assert mt is not None
-        assert not bool(mt["validated"])
-        conn.close()
-
-    def test_market_task_has_utm_links(self, tmp_path):
-        db = make_db(tmp_path)
-        upsert_events_v2([make_event()], db_path=db)
-
-        conn = sqlite3.connect(str(db))
-        conn.row_factory = sqlite3.Row
-        mt = conn.execute("SELECT * FROM market_task").fetchone()
-        assert "utm_source=instagram" in mt["utm_link_grid"]
-        assert "utm_source=instagram" in mt["utm_link_story_reminder"]
-        assert "utm_source=instagram" in mt["utm_link_story_dayof"]
-        conn.close()
-
-    def test_utm_campaign_contains_city_and_date(self, tmp_path):
-        db = make_db(tmp_path)
-        upsert_events_v2([make_event()], db_path=db)
-
-        conn = sqlite3.connect(str(db))
-        mt = conn.execute("SELECT utm_link_grid FROM market_task").fetchone()
-        assert "DEN" in mt[0]
-        assert "20250405" in mt[0]
-        conn.close()
-
-    def test_no_duplicate_market_task_on_re_upsert(self, tmp_path):
-        db = make_db(tmp_path)
-        upsert_events_v2([make_event()], db_path=db)
-        result = upsert_events_v2([make_event()], db_path=db)
-        assert result["updated"] == 1
-
-        conn = sqlite3.connect(str(db))
-        count = conn.execute("SELECT COUNT(*) FROM market_task").fetchone()[0]
-        assert count == 1
-        conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -243,7 +200,7 @@ class TestUpsertEventsV2CityResolution:
 # ---------------------------------------------------------------------------
 
 class TestUpsertEventsV2Batch:
-    def test_multiple_events_each_get_market_task(self, tmp_path):
+    def test_multiple_events_batch_insert(self, tmp_path):
         db = make_db(tmp_path)
         events = [
             make_event(
@@ -258,7 +215,5 @@ class TestUpsertEventsV2Batch:
 
         conn = sqlite3.connect(str(db))
         event_count = conn.execute("SELECT COUNT(*) FROM event").fetchone()[0]
-        task_count = conn.execute("SELECT COUNT(*) FROM market_task").fetchone()[0]
         assert event_count == 3
-        assert task_count == 3
         conn.close()

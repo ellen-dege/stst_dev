@@ -21,7 +21,6 @@ task refresh-debug     # Scrape with browser visible (debugging)
 
 # Validation
 task validate-new      # Review and validate newly scraped events (sets event.validated)
-task validate-marketing  # Confirm event details on site before marketing tasks (sets market_task.validated)
 
 # Dashboard
 task dashboard         # Launch Streamlit dashboard (default task)
@@ -78,15 +77,13 @@ stst_dev/
 
 - **database.py**: SQLite operations. Contains both legacy v1 functions and the active v2 functions:
   - `get_v2_connection()` — connection with foreign keys enabled
-  - `upsert_events_v2()` — insert/update events in the normalized schema; auto-creates `market_task` rows with UTM links
+  - `upsert_events_v2()` — insert/update events in the normalized schema
   - `load_venue_alias_lookup_v2()`, `load_tag_lookup_v2()`, `load_city_name_lookup_v2()` — in-memory lookup tables
   - `_generate_utm_link()` — builds UTM-tagged URLs for grid/story posts
 
 - **seed_db.py / seed_update.py**: Read `data/seed_data.yaml` and populate the `city`, `venue`, `venue_alias`, `facilitator`, and `tag` tables.
 
 - **validate_new.py**: Interactive CLI to review newly scraped events and set `event.validated = 1`.
-
-- **validate_marketing.py**: Interactive CLI to confirm event details on the STST site before starting marketing tasks; sets `market_task.validated = 1`.
 
 - **dashboard/app.py**: Streamlit dashboard for viewing events and tracking marketing task completion.
 
@@ -99,12 +96,10 @@ Seven tables. See `schema.sql` for full DDL. Summary:
 - **`venue`** — lookup: one row per venue, linked to a city.
 - **`venue_alias`** — maps scraper location strings to canonical venue rows.
 - **`event`** — core table, populated by scraper. Includes `validated`, ticket fields (`tickets_sold`, `ticket_threshold`, `num_attended`), and dating ticket fields.
-- **`market_task`** — one row per event (auto-created on insert). Tracks marketing task completion booleans, UTM links, `photo_link_sent_at` (DATETIME), and `content_uploaded` (BOOL).
 - **`tag`** / **`event_tag`** — many-to-many tags (age group, affinity, status).
 
 Key design decisions:
 - `sold_out` is stored on `event` (fast queries) and also as a tag in `event_tag` (kept in sync by the scraper).
-- `market_task` rows are auto-created by `upsert_events_v2()` with UTM links generated at insert time.
 - `venue_alias` is the primary mechanism for resolving scraped location strings to `venue` and `city`.
 - `city.website_city_name` handles cases where the STST website uses a broader city label (e.g., "Boston" for Cambridge/Somerville/Boston events).
 

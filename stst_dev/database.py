@@ -733,8 +733,6 @@ def upsert_events_v2(
     venue_alias_lookup = load_venue_alias_lookup_v2(conn)
     tag_lookup = load_tag_lookup_v2(conn)
     city_name_lookup = load_city_name_lookup_v2(conn)
-    city_abbrev_lookup = load_city_abbrev_lookup_v2(conn)
-
     sold_out_tag_id = tag_lookup.get("sold out")
 
     inserted = 0
@@ -823,10 +821,7 @@ def upsert_events_v2(
             # --- 4. Date ---
             event_date = event.date_iso or event.date
 
-            # --- 5. City abbreviation for UTM ---
-            city_abbrev = city_abbrev_lookup.get(city_id, "UNK")
-
-            # --- 6. Check existence ---
+            # --- 5. Check existence ---
             cursor.execute(
                 "SELECT event_id, sold_out FROM event WHERE event_link = ?",
                 (event.link,),
@@ -856,20 +851,6 @@ def upsert_events_v2(
                     ),
                 )
                 new_event_id = cursor.lastrowid
-
-                # Create market_task row with UTM links
-                cursor.execute(
-                    """INSERT INTO market_task
-                       (event_id, utm_link_grid, utm_link_story_reminder,
-                        utm_link_story_dayof)
-                       VALUES (?, ?, ?, ?)""",
-                    (
-                        new_event_id,
-                        _generate_utm_link(event.link, city_abbrev, event_date, "grid"),
-                        _generate_utm_link(event.link, city_abbrev, event_date, "story_reminder"),
-                        _generate_utm_link(event.link, city_abbrev, event_date, "story_dayof"),
-                    ),
-                )
 
                 # Insert event_tag rows
                 for tag_name in event.tags:

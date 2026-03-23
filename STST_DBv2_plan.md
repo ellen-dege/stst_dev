@@ -52,7 +52,7 @@ One row per venue. Cities may have multiple venues.
 | venue_name | TEXT | |
 | venue_ig_handle_1 | TEXT | |
 | venue_ig_handle_2 | TEXT | At most two handles |
-| venue_website | TEXT | |
+| venue_events_site | TEXT | |
 | venue_address | TEXT | |
 | notes | TEXT | e.g. "only use photos taken at this venue" |
 

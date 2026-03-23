@@ -40,7 +40,6 @@ task refresh-debug     # Scrape with browser visible (debugging)
 
 # Validation
 task validate-new      # Review and validate newly scraped events (sets event.validated)
-task validate-marketing  # Confirm event details on site before marketing tasks (sets market_task.validated)
 
 # Dashboard
 task dashboard         # Launch Streamlit dashboard (default task)
@@ -66,7 +65,7 @@ task docker-down    # Stop Docker containers
 
 The system has three layers:
 
-1. **`scraper.py`** — scrapes the STST website, upserts event records into SQLite, detects new events and sold-out status changes, auto-creates `market_task` rows for new events
+1. **`scraper.py`** — scrapes the STST website, upserts event records into SQLite, detects new events and sold-out status changes
 2. **`output.py`** *(planned)* — queries the database and generates plain-text Canva lines and social media post content
 3. **`dashboard/app.py`** *(in progress)* — local Streamlit dashboard for viewing events, tracking marketing task completion, and surfacing promotion priorities
 
@@ -103,7 +102,7 @@ stst_dev/
 
 ## Database Schema
 
-Seven tables. Lookup tables (`city`, `venue`, `facilitator`, `tag`) are seeded from `seed_data.yaml`. Event data is populated by the scraper.
+Six tables. Lookup tables (`city`, `venue`, `facilitator`, `tag`) are seeded from `seed_data.yaml`. Event data is populated by the scraper.
 
 ```mermaid
 erDiagram
@@ -113,7 +112,6 @@ erDiagram
     venue ||--o{ venue_alias : "has"
     venue ||--o{ event : "hosts"
     facilitator ||--o{ event : "runs"
-    event ||--|| market_task : "has"
     event ||--o{ event_tag : "tagged with"
     tag ||--o{ event_tag : "applied to"
 
@@ -148,10 +146,11 @@ erDiagram
         text venue_name
         text venue_ig_handle_1
         text venue_ig_handle_2
-        text venue_website
+        text venue_events_site
         text venue_address
         text venue_fb_name
         text venue_contact_emails "semicolon-separated"
+        text venue_TT
         text notes
     }
 
@@ -183,32 +182,6 @@ erDiagram
         datetime first_scraped_at
         datetime last_checked_at
         datetime status_changed_at
-    }
-
-    market_task {
-        int market_task_id PK
-        int event_id FK
-        bool validated "confirm details on site before marketing; set via task validate-marketing"
-        bool weekly_graphic_created
-        bool standalone_graphic_created
-        bool added_to_biweekly_upcoming
-        bool grid_post_scheduled
-        bool venue_collab_sent
-        bool venue_collab_accepted
-        bool story_postlive
-        bool story_reminder
-        bool story_dayof
-        bool extra_promo_pushed
-        bool meetup_RSVPs
-        bool on_venue_site
-        bool on_venue_socials
-        datetime photo_link_sent_at "timestamp when photo link was sent; NULL = not yet sent"
-        bool content_uploaded "facilitator uploaded post-event content to Drive"
-        text utm_link_grid
-        text utm_link_story_reminder
-        text utm_link_story_dayof
-        text notes
-        datetime last_updated_at
     }
 
     tag {
@@ -264,7 +237,7 @@ Per `STST_DBv2_plan.md`:
 
 - [x] Define schema and write DDL
 - [x] Seed lookup tables (city, venue, facilitator, tag)
-- [x] Build and test scraper v2 (UTM link generation, market_task auto-creation)
+- [x] Build and test scraper v2
 - [ ] Build and test ticket_sync.py
 - [ ] Build and test output.py
 - [ ] Streamlit dashboard v2

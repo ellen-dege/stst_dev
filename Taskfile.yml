@@ -52,12 +52,6 @@ tasks:
     cmds:
       - poetry run python -m scripts.validate_new
 
-  validate-marketing:
-    desc: Confirm event details on site before executing marketing tasks
-    deps: [install-poetry]
-    cmds:
-      - poetry run python -m scripts.validate_marketing
-
   test:
     desc: Run tests
     deps: [install-poetry]

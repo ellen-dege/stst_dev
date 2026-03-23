@@ -1,5 +1,5 @@
 -- STST Event Database v2 Schema
--- 7 tables: city, facilitator, venue, event, market_task, tag, event_tag
+-- 6 tables: city, facilitator, venue, event, tag, event_tag
 
 PRAGMA foreign_keys = ON;
 
@@ -34,10 +34,11 @@ CREATE TABLE IF NOT EXISTS venue (
     venue_name        TEXT    NOT NULL,
     venue_ig_handle_1 TEXT,
     venue_ig_handle_2 TEXT,
-    venue_website        TEXT,
+    venue_events_site    TEXT,
     venue_address        TEXT,
     venue_fb_name        TEXT,
     venue_contact_emails TEXT,
+    venue_TT             TEXT,
     notes                TEXT
 );
 
@@ -69,32 +70,6 @@ CREATE TABLE IF NOT EXISTS event (
     first_scraped_at   DATETIME NOT NULL DEFAULT (datetime('now')),
     last_checked_at    DATETIME NOT NULL DEFAULT (datetime('now')),
     status_changed_at  DATETIME
-);
-
-CREATE TABLE IF NOT EXISTS market_task (
-    market_task_id              INTEGER  PRIMARY KEY AUTOINCREMENT,
-    event_id                    INTEGER  NOT NULL UNIQUE REFERENCES event(event_id),
-    validated                   BOOLEAN  NOT NULL DEFAULT 0,
-    weekly_graphic_created      BOOLEAN  NOT NULL DEFAULT 0,
-    standalone_graphic_created  BOOLEAN  NOT NULL DEFAULT 0,
-    added_to_biweekly_upcoming  BOOLEAN  NOT NULL DEFAULT 0,
-    grid_post_scheduled         BOOLEAN  NOT NULL DEFAULT 0,
-    venue_collab_sent           BOOLEAN  NOT NULL DEFAULT 0,
-    venue_collab_accepted       BOOLEAN  NOT NULL DEFAULT 0,
-    story_postlive              BOOLEAN  NOT NULL DEFAULT 0,
-    story_reminder              BOOLEAN  NOT NULL DEFAULT 0,
-    story_dayof                 BOOLEAN  NOT NULL DEFAULT 0,
-    extra_promo_pushed          BOOLEAN  NOT NULL DEFAULT 0,
-    meetup_RSVPs                BOOLEAN  NOT NULL DEFAULT 0,
-    on_venue_site               BOOLEAN  NOT NULL DEFAULT 0,
-    on_venue_socials            BOOLEAN  NOT NULL DEFAULT 0,
-    photo_link_sent_at          DATETIME,
-    content_uploaded            BOOLEAN  NOT NULL DEFAULT 0,
-    utm_link_grid         TEXT,
-    utm_link_story_reminder TEXT,
-    utm_link_story_dayof  TEXT,
-    notes                 TEXT,
-    last_updated_at       DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS tag (

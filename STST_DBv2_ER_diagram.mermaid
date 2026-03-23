@@ -25,8 +25,11 @@ erDiagram
         TEXT venue_name
         TEXT venue_ig_handle_1
         TEXT venue_ig_handle_2
-        TEXT venue_website
+        TEXT venue_events_site
         TEXT venue_address
+        TEXT venue_fb_name
+        TEXT venue_fb
+        TEXT venue_TT
         TEXT notes
     }
 
@@ -54,25 +57,6 @@ erDiagram
         DATETIME status_changed_at
     }
 
-    market_task {
-        INTEGER market_task_id PK
-        INTEGER event_id FK
-        BOOLEAN graphic_created
-        BOOLEAN grid_post_scheduled
-        BOOLEAN venue_collab_sent
-        BOOLEAN venue_collab_accepted
-        BOOLEAN story_postlive
-        BOOLEAN story_reminder
-        BOOLEAN story_dayof
-        BOOLEAN extra_promo_pushed
-        BOOLEAN photo_link_sent
-        TEXT utm_link_grid
-        TEXT utm_link_story_reminder
-        TEXT utm_link_story_dayof
-        TEXT notes
-        DATETIME last_updated_at
-    }
-
     tag {
         INTEGER tag_id PK
         TEXT tag_name
@@ -90,6 +74,5 @@ erDiagram
     city ||--o{ event : "hosts"
     venue ||--o{ event : "located at"
     facilitator ||--o{ event : "runs"
-    event ||--|| market_task : "tracked by"
     event ||--o{ event_tag : "tagged with"
     tag ||--o{ event_tag : "applied to"
