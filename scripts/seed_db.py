@@ -55,7 +55,7 @@ def seed(db_path: Path = DB_PATH) -> None:
             cur.execute(
                 """INSERT INTO venue
                    (city_id, venue_name, venue_ig_handle_1, venue_ig_handle_2,
-                    venue_events_site, venue_address, venue_fb_name, venue_contact_emails, venue_TT, notes)
+                    venue_events_site, venue_address, venue_fb, venue_contact_emails, venue_TT, notes)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     city_id,
@@ -64,7 +64,7 @@ def seed(db_path: Path = DB_PATH) -> None:
                     venue.get("venue_ig_handle_2"),
                     venue.get("venue_events_site"),
                     venue.get("venue_address"),
-                    venue.get("venue_fb_name"),
+                    venue.get("venue_fb"),
                     venue.get("venue_contact_emails"),
                     venue.get("venue_TT"),
                     venue.get("notes"),

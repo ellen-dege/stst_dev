@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS venue (
     venue_ig_handle_2 TEXT,
     venue_events_site    TEXT,
     venue_address        TEXT,
-    venue_fb_name        TEXT,
+    venue_fb        TEXT,
     venue_contact_emails TEXT,
     venue_TT             TEXT,
     notes                TEXT

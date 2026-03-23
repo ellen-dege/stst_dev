@@ -148,7 +148,7 @@ erDiagram
         text venue_ig_handle_2
         text venue_events_site
         text venue_address
-        text venue_fb_name
+        text venue_fb
         text venue_contact_emails "semicolon-separated"
         text venue_TT
         text notes
@@ -230,6 +230,17 @@ A `task publish` command could export a read-only view of the database to a shar
 - **Newsletter Updates** — events grouped by region or recently added, for drafting newsletter content
 
 This would use a service account for authentication (credentials gitignored) and could be triggered manually or automatically after `task refresh`.
+
+## Rescheduled / Removed Events
+
+When an event disappears from the STST website (e.g. rescheduled or cancelled), the scraper will stop updating its `last_checked_at` but the row remains in the database. The current approach is to handle these **ad hoc**: identify them by their stale `last_checked_at` relative to other events, then delete them manually via `task db`:
+
+```sql
+DELETE FROM event_tag WHERE event_id = <id>;
+DELETE FROM event WHERE event_id = <id>;
+```
+
+**Future consideration:** if removed/rescheduled events become frequent enough to track, add a `removed_from_site BOOLEAN NOT NULL DEFAULT 0` column to `event`. The scraper could then mark future events as removed if they weren't seen in the current run (by comparing `last_checked_at` against the run timestamp), rather than deleting rows. This would preserve history and allow the dashboard to filter them out cleanly.
 
 ## Build Status
 

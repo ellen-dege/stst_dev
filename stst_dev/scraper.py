@@ -167,8 +167,8 @@ def _extract_start_time_from_tag_links(tag_hrefs: list[str]) -> str:
         tag_value = unquote(href.split("tag=")[1].split("&")[0])
         tag_value = tag_value.replace("+", " ")
 
-        # Match time patterns like "7:00 pm", "12:30 am"
-        if re.match(r"^\d{1,2}:\d{2}\s*(am|pm)$", tag_value, re.IGNORECASE):
+        # Match time patterns like "7:00 pm", "12:30 am", or military "19:00"
+        if re.match(r"^\d{1,2}:\d{2}\s*(am|pm)?$", tag_value, re.IGNORECASE):
             return tag_value
 
     return ""
@@ -201,7 +201,7 @@ def _extract_start_time_from_event_page(
         )
         text = excerpt_elem.text
         match = re.search(
-            r"EVENT\s+START[\s\-\u2013\u2014]*END\s*\|\s*(\d{1,2}:\d{2}\s*(?:am|pm))",
+            r"EVENT\s+START[\s\-\u2013\u2014]*END\s*\|\s*(\d{1,2}:\d{2}\s*(?:am|pm)?)",
             text,
             re.IGNORECASE,
         )

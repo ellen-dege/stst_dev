@@ -608,7 +608,11 @@ def load_tag_lookup_v2(conn: sqlite3.Connection) -> dict[str, int]:
 
 
 def load_city_name_lookup_v2(conn: sqlite3.Connection) -> dict[str, int]:
-    """Load lowercased city_name → city_id mapping from the database.
+    """Load lowercased city name → city_id mapping from the database.
+
+    Indexes both city_name and website_city_name (where set), so scraped city
+    strings match even when the website uses a different label than the canonical
+    city name (e.g. "Edinburgh" on the website vs "Edinburgh (UK)" in the DB).
 
     Used as a fallback when a venue alias is not found.
 
@@ -616,10 +620,15 @@ def load_city_name_lookup_v2(conn: sqlite3.Connection) -> dict[str, int]:
         conn: Active database connection.
 
     Returns:
-        Dict mapping lowercase city_name → city_id.
+        Dict mapping lowercase city name → city_id.
     """
-    cur = conn.execute("SELECT city_id, city_name FROM city")
-    return {row["city_name"].lower(): row["city_id"] for row in cur}
+    cur = conn.execute("SELECT city_id, city_name, website_city_name FROM city")
+    result = {}
+    for row in cur:
+        result[row["city_name"].lower()] = row["city_id"]
+        if row["website_city_name"]:
+            result[row["website_city_name"].lower()] = row["city_id"]
+    return result
 
 
 def load_city_abbrev_lookup_v2(conn: sqlite3.Connection) -> dict[int, str]:
