@@ -33,12 +33,12 @@ def seed(db_path: Path = DB_PATH) -> None:
     for city in data["cities"]:
         cur.execute(
             """INSERT INTO city
-               (city_name, city_abbrev, state, country, region, time_zone,
+               (city_name, loc_abbrev, state, country, region, time_zone,
                 has_dedicated_ig, ig_handle, website_city_name)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 city["city_name"],
-                city.get("city_abbrev"),
+                city.get("loc_abbrev"),
                 city.get("state"),
                 city.get("country", "US"),
                 city.get("region"),

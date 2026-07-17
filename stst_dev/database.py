@@ -5,7 +5,6 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 
 from .config import (
     DATABASE_PATH,
@@ -631,48 +630,11 @@ def load_city_name_lookup_v2(conn: sqlite3.Connection) -> dict[str, int]:
     return result
 
 
-def load_city_abbrev_lookup_v2(conn: sqlite3.Connection) -> dict[int, str]:
-    """Load city_id → city_abbrev mapping from the database.
-
-    Args:
-        conn: Active database connection.
-
-    Returns:
-        Dict mapping city_id → city_abbrev.
-    """
-    cur = conn.execute("SELECT city_id, city_abbrev FROM city WHERE city_abbrev IS NOT NULL")
-    return {row["city_id"]: row["city_abbrev"] for row in cur}
-
-
-def _generate_utm_link(
-    event_link: str, city_abbrev: str, event_date_iso: str, post_type: str
-) -> str:
-    """Generate a UTM-tagged link for an event.
-
-    Args:
-        event_link: Original event URL.
-        city_abbrev: City abbreviation (e.g., "BOS").
-        event_date_iso: Event date in ISO format (YYYY-MM-DD).
-        post_type: One of "grid", "story_reminder", "story_dayof".
-
-    Returns:
-        URL with UTM parameters appended.
-    """
-    date_compact = event_date_iso.replace("-", "")
-    utm_content = "story" if post_type.startswith("story") else "grid"
-    params = {
-        "utm_source": "instagram",
-        "utm_medium": "social",
-        "utm_content": utm_content,
-        "utm_campaign": f"{city_abbrev}_{date_compact}_{post_type}",
-    }
-
-    parsed = urlparse(event_link)
-    # Preserve any existing query params
-    existing = parse_qs(parsed.query, keep_blank_values=True)
-    existing.update(params)
-    new_query = urlencode(existing, doseq=True)
-    return urlunparse(parsed._replace(query=new_query))
+def load_loc_abbrev_lookup_v2(conn: sqlite3.Connection) -> dict[int, str]:
+    # loc_abbrev is a metro-area label concordant with website_city_name, not a literal city
+    # (e.g. Boston, Cambridge, Somerville, and Everett all share loc_abbrev "BOS")
+    cur = conn.execute("SELECT city_id, loc_abbrev FROM city WHERE loc_abbrev IS NOT NULL")
+    return {row["city_id"]: row["loc_abbrev"] for row in cur}
 
 
 def _sync_event_tags(

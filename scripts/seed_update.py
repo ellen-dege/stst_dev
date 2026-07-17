@@ -39,11 +39,11 @@ def seed_update(db_path: Path = DB_PATH) -> None:
         if row:
             city_id = row["city_id"]
             cur.execute(
-                """UPDATE city SET city_abbrev=?, state=?, country=?, region=?,
+                """UPDATE city SET loc_abbrev=?, state=?, country=?, region=?,
                    time_zone=?, has_dedicated_ig=?, ig_handle=?, website_city_name=?
                    WHERE city_id=?""",
                 (
-                    city.get("city_abbrev"),
+                    city.get("loc_abbrev"),
                     city.get("state"),
                     city.get("country", "US"),
                     city.get("region"),
@@ -58,12 +58,12 @@ def seed_update(db_path: Path = DB_PATH) -> None:
         else:
             cur.execute(
                 """INSERT INTO city
-                   (city_name, city_abbrev, state, country, region, time_zone,
+                   (city_name, loc_abbrev, state, country, region, time_zone,
                     has_dedicated_ig, ig_handle, website_city_name)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     city["city_name"],
-                    city.get("city_abbrev"),
+                    city.get("loc_abbrev"),
                     city.get("state"),
                     city.get("country", "US"),
                     city.get("region"),

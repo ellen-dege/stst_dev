@@ -135,7 +135,7 @@ Junction table for the many-to-many relationship between events and tags. The sc
 
 **State and country are not denormalized onto `event`.** The `city` table is small (dozens of rows at most) and the join is trivial. Output scripts should join through `city` to retrieve state and country.
 
-**`market_task` rows are auto-created.** When the scraper inserts a new event, it should immediately insert a corresponding `market_task` row with all boolean fields defaulting to FALSE and UTM links auto-generated using the convention: `utm_source` = platform, `utm_medium` = content format (grid/story/reel), `utm_campaign` = `[city_abbrev]_[YYYYMMDD]_[post_type]`. UTM links are stored on `market_task` rather than `event` because they are marketing-workflow artifacts.
+**UTM links are generated externally.** The `market_task` table and in-code UTM generation (`_generate_utm_link`) have been removed. UTM links are now produced in Google Sheets from a DB export. The `loc_abbrev` field on `city` (metro-area label concordant with `website_city_name`) is the intended campaign prefix if UTM generation is ever brought back into code.
 
 **Ticket data comes from a separate Google Sheet, not the scraper.** The team maintains a Google Sheet tracking tickets sold per event. This data is synced into `event.tickets_sold` weekly — either via a Sheets API pull script or manual export/import. `ticket_threshold` is set per event based on venue capacity (could default from a future field on `venue` if thresholds are consistent per venue). `num_attended` is updated post-event from the same Sheet. The scraper handles event discovery and sold-out detection; ticket sales tracking is a separate data flow.
 

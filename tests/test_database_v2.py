@@ -1,12 +1,11 @@
-"""Tests for v2 database functions: UTM link generation and upsert_events_v2."""
+"""Tests for v2 database functions: upsert_events_v2."""
 
 import sqlite3
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from stst_dev.database import _generate_utm_link, upsert_events_v2
+from stst_dev.database import upsert_events_v2
 from stst_dev.models import Event
 
 SCHEMA_PATH = Path(__file__).parent.parent / "schema.sql"
@@ -20,7 +19,7 @@ def make_db(tmp_path: Path) -> Path:
     conn.executescript(SCHEMA_PATH.read_text())
 
     conn.execute(
-        "INSERT INTO city (city_id, city_name, city_abbrev, state, country, has_dedicated_ig)"
+        "INSERT INTO city (city_id, city_name, loc_abbrev, state, country, has_dedicated_ig)"
         " VALUES (1, 'Denver', 'DEN', 'CO', 'US', 1)"
     )
     conn.execute(
@@ -52,39 +51,6 @@ def make_event(**kwargs) -> Event:
     )
     defaults.update(kwargs)
     return Event(**defaults)
-
-
-# ---------------------------------------------------------------------------
-# _generate_utm_link
-# ---------------------------------------------------------------------------
-
-class TestGenerateUtmLink:
-    def test_params_present(self):
-        url = _generate_utm_link("https://example.com/event", "DEN", "2025-04-05", "grid")
-        qs = parse_qs(urlparse(url).query)
-        assert qs["utm_source"] == ["instagram"]
-        assert qs["utm_medium"] == ["social"]
-        assert qs["utm_content"] == ["grid"]
-        assert qs["utm_campaign"] == ["DEN_20250405_grid"]
-
-    def test_story_content_tag(self):
-        url = _generate_utm_link("https://example.com/event", "BOS", "2025-06-01", "story_reminder")
-        qs = parse_qs(urlparse(url).query)
-        assert qs["utm_content"] == ["story"]
-        assert qs["utm_campaign"] == ["BOS_20250601_story_reminder"]
-
-    def test_dayof_story_content_tag(self):
-        url = _generate_utm_link("https://example.com/event", "NYC", "2025-09-15", "story_dayof")
-        qs = parse_qs(urlparse(url).query)
-        assert qs["utm_content"] == ["story"]
-
-    def test_existing_query_params_preserved(self):
-        url = _generate_utm_link(
-            "https://example.com/event?ref=homepage", "DEN", "2025-04-05", "grid"
-        )
-        qs = parse_qs(urlparse(url).query)
-        assert "ref" in qs
-        assert qs["utm_source"] == ["instagram"]
 
 
 # ---------------------------------------------------------------------------

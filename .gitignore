@@ -45,9 +45,10 @@ ENV/
 *~
 
 # Project-specific
-data/
+data/*.db
+data/output/
 output/
-*.db
+!data/seed_data.yaml
 
 # OS files
 .DS_Store

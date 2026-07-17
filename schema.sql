@@ -6,7 +6,7 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS city (
     city_id         INTEGER PRIMARY KEY AUTOINCREMENT,
     city_name       TEXT    NOT NULL,
-    city_abbrev     TEXT,
+    loc_abbrev      TEXT,   -- metro-area label matching website_city_name (e.g. BOS for Boston/Cambridge/Somerville/Everett)
     state           TEXT,
     country         TEXT    NOT NULL DEFAULT 'US',
     region          TEXT,

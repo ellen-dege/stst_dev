@@ -1,0 +1,1285 @@
+cities:
+- city_name: Atlanta
+  loc_abbrev: ATL
+  state: GA
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Daniella C.
+    facilitator_email_1: daniellafay.stst@gmail.com
+    ig_handle: null
+    is_active: false
+    tag_on_ig: false
+- city_name: Austin
+  loc_abbrev: ATX
+  state: TX
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: St. Elmo Brewing
+    aliases:
+    - St. Elmo Brewing
+    - St. Elmo
+    - St Elmo
+    venue_ig_handle_1: "@stelmobrewing"
+    venue_ig_handle_2: null
+    venue_events_site: http://www.stelmobrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: jenni@stelmobrewing.com
+    notes: null
+  facilitators:
+  - facilitator_name: Jessica
+    tag_on_ig: false
+    facilitator_email_1: connect@jessicaashleysteele.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Yesenia
+    tag_on_ig: false
+    facilitator_email_1: ysnlima@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Baltimore
+  loc_abbrev: BAL
+  state: MD
+  country: US
+  region: Mid-Atlantic
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Checkerspot Brewing Co.
+    aliases:
+    - Checkerspot Brewing Co.
+    - Checkerspot Brewing Co
+    - Checkerspot Brewing
+    - Checkerspot
+    venue_ig_handle_1: "@checkerspotbrewing"
+    venue_ig_handle_2: null
+    venue_events_site: https://checkerspotbrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: audrey@checkerspotbrewing.com
+    notes: null
+  - venue_name: Monument City Brewing
+    aliases:
+    - Monument City Brewing
+    - Monument City
+    venue_ig_handle_1: "@monumentcitybrewing"
+    venue_ig_handle_2: null
+    venue_events_site: https://monumentcitybrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: events@mcbrewingco.com
+    notes: null
+  facilitators:
+  - facilitator_name: Nathalie
+    tag_on_ig: false
+    facilitator_email_1: nathaliefolkerts@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Megan Fine
+    tag_on_ig: false
+    facilitator_email_1: null
+    ig_handle: null
+    is_active: false
+- city_name: Boston
+  loc_abbrev: BOS
+  state: MA
+  country: US
+  region: New England
+  time_zone: null
+  website_city_name: Boston
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Mighty Squirrel Taproom & Kitchen (Fenway)
+    aliases:
+    - Mighty Squirrel Taproom & Kitchen (Fenway)
+    - Mighty Squirrel Taproom & Kitchen
+    - Mighty Squirrel
+    venue_ig_handle_1: "@mightysquirrelfenway"
+    venue_ig_handle_2: "@mightysqrl"
+    venue_events_site: null
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: brian.burke@mightysquirrel.com; jamie.walsh@mightysquirrel.com; jesse.reyes@mightysquirrel.com
+    notes: null
+  - venue_name: Scholars American Bistro & Cocktail Lounge
+    aliases:
+    - Scholars American Bistro & Cocktail Lounge
+    - Scholars
+    venue_ig_handle_1: "@scholarsboston"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.scholarsbostonbistro.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: vanessa@scholarsbostonbistro.com
+    notes: null
+  - venue_name: Trident Books
+    aliases:
+    - Trident Books
+    - Trident
+    venue_ig_handle_1: "@tridentbooks"
+    venue_ig_handle_2: null
+    venue_events_site: https://tridentbookscafe.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: ashley@tridentbookscafe.com; kim@tridentbookscafe.com; jordan@tridentbookscafe.com
+    notes: null
+  facilitators:
+  - facilitator_name: Ashley
+    tag_on_ig: false
+    facilitator_email_1: ashley@skipthesmalltalk.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Stacy
+    tag_on_ig: false
+    facilitator_email_1: stacystraaberg@gmail.com
+    facilitator_email_2: Stacy.STST@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Samantha
+    tag_on_ig: false
+    facilitator_email_1: sammialicelee@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Emily
+    tag_on_ig: false
+    facilitator_email_1: emily.faber94@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Christina
+    tag_on_ig: false
+    facilitator_email_1: chalsted.stst@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Rachel K.
+    tag_on_ig: false
+    facilitator_email_1: rdkallus@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Becky
+    tag_on_ig: false
+    facilitator_email_1: rebeccah.lipson212@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Eden
+    tag_on_ig: false
+    facilitator_email_1: Eden.pletner@mail.mcgill.ca
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Nora
+    tag_on_ig: false
+    facilitator_email_1: nmally712@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Boulder
+  loc_abbrev: BLD
+  state: CO
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Ellen
+    tag_on_ig: false
+    facilitator_email_1: ellentalkco@gmail.com
+    facilitator_email_2: ellen.degenn@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Brighton (UK)
+  loc_abbrev: BRIG
+  state: null
+  country: UK
+  region: Non-US
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Roisin
+    facilitator_email_1: hello@roisinskinner.com
+    ig_handle: null
+    is_active: false
+    tag_on_ig: false
+- city_name: Brussels (BE)
+  loc_abbrev: BRU
+  state: null
+  country: BE
+  region: Non-US
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Nastassia
+    facilitator_email_1: nastassia@ness.global
+    ig_handle: null
+    is_active: false
+    tag_on_ig: false
+- city_name: Cambridge
+  loc_abbrev: BOS
+  state: MA
+  country: US
+  region: New England
+  time_zone: null
+  website_city_name: Boston
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: McCarthy's and Toad
+    aliases:
+    - McCarthy's and Toad
+    - McCarthys and Toad
+    - McCarthy's
+    - McCarthys
+    - McCarthy
+    venue_ig_handle_1: "@mccarthystoad"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.mccarthystoad.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: katie.mccarthystoad@gmail.com; 123harry63@gmail.com
+    notes: null
+  facilitators:
+  - facilitator_name: Ashley
+    tag_on_ig: false
+    facilitator_email_1: ashley@skipthesmalltalk.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Stacy
+    tag_on_ig: false
+    facilitator_email_1: stacystraaberg@gmail.com
+    facilitator_email_2: Stacy.STST@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Samantha
+    tag_on_ig: false
+    facilitator_email_1: sammialicelee@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Emily
+    tag_on_ig: false
+    facilitator_email_1: emily.faber94@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Christina
+    tag_on_ig: false
+    facilitator_email_1: chalsted.stst@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Rachel K.
+    tag_on_ig: false
+    facilitator_email_1: rdkallus@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Becky
+    tag_on_ig: false
+    facilitator_email_1: rebeccah.lipson212@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Eden
+    tag_on_ig: false
+    facilitator_email_1: Eden.pletner@mail.mcgill.ca
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Nora
+    tag_on_ig: false
+    facilitator_email_1: nmally712@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Charlotte
+  loc_abbrev: CLT
+  state: NC
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Heist Brewery and Barrel Arts
+    aliases:
+    - Heist Brewery and Barrel Arts
+    - Heist Brewery
+    - Heist
+    venue_ig_handle_1: "@heistbrewery_barrelarts"
+    venue_ig_handle_2: null
+    venue_events_site: https://heistbrewery.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: courtney@heistbrewery.com
+    notes: null
+  facilitators:
+  - facilitator_name: Brittenay
+    tag_on_ig: false
+    facilitator_email_1: STSTwithBrittenay@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Emily
+    tag_on_ig: false
+    facilitator_email_1: emnybo@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Chicago
+  loc_abbrev: CHI
+  state: IL
+  country: US
+  region: Midwest
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: kibbitznest
+    venue_ig_handle_1: "@kibbitznest"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.kibbitznest.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: rachel@kibbitznest.com
+    notes: null
+  facilitators:
+  - facilitator_name: Anna
+    tag_on_ig: false
+    facilitator_email_1: anna.skipthesmalltalk@gmail.com
+    ig_handle: "@annachalf"
+    is_active: false
+  - facilitator_name: Viviana
+    tag_on_ig: false
+    facilitator_email_1: dbarajas11@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Denver
+  loc_abbrev: DEN
+  state: CO
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Town Hall Collaborative
+    aliases:
+    - Town Hall Collaborative
+    - Town Hall Collab
+    - Town Hall
+    venue_ig_handle_1: "@townhallcollaborative"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.townhallcollaborative.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: ap@townhallcollaborative.com
+    notes: null
+  facilitators:
+  - facilitator_name: Christina
+    tag_on_ig: false
+    facilitator_email_1: Christina.r.hami@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Ellen
+    tag_on_ig: false
+    facilitator_email_1: ellentalkco@gmail.com
+    facilitator_email_2: ellen.degenn@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Detroit
+  loc_abbrev: DET
+  state: MI
+  country: US
+  region: Midwest
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Shelby
+    facilitator_email_1: shelbynchaney@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: false
+- city_name: Durham
+  loc_abbrev: DUR
+  state: NC
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Redhead Hemp
+    aliases:
+    - Redhead Hemp Durham
+    venue_ig_handle_1: "@redheadhemp"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.redheadhemp.com/events-hub/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: redheadhemp@gmail.com
+    notes: null
+  - venue_name: Atomic Clock Brewing
+    aliases:
+    - Atomic Clock Brewing
+    - Atomic Clock
+    venue_ig_handle_1: "@atomicclockbrewing"
+    venue_ig_handle_2: null
+    venue_events_site: null
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: colleen@atomicclockbrewing.com
+    notes: null
+  facilitators:
+  - facilitator_name: Zana
+    facilitator_email_1: hickszn@guilford.edu
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: Edinburgh (UK)
+  loc_abbrev: EDI
+  state: null
+  country: UK
+  region: Non-US
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  website_city_name: Edinburgh
+  venues:
+  - venue_name: Moonwake Beer Co.
+    aliases:
+    - Moonwake Beer Co.
+    venue_ig_handle_1: "@moonwakebeer"
+    venue_ig_handle_2: null
+    venue_events_site: https://moonwakebeer.com/pages/events
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  facilitators:
+  - facilitator_name: Mikaila (Mik)
+    facilitator_email_1: mikailakelly@icloud.com
+    ig_handle: "@flow_with_mik"
+    tag_on_ig: false
+    is_active: false
+  - facilitator_name: Claire
+    facilitator_email_1: claire_louise_keating@hotmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: Everett
+  loc_abbrev: BOS
+  state: MA
+  country: US
+  region: New England
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  website_city_name: Boston
+  venues:
+  - venue_name: Short Path Distillery
+    aliases:
+    - Short Path Distillery
+    - Short Path
+    venue_ig_handle_1: "@shortpathdistillery"
+    venue_ig_handle_2: "@shortpathcafe"
+    venue_events_site: http://www.shortpathdistillery.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: "[Alycia] rovner@shortpathdistillery.com"
+    notes: null
+- city_name: London (UK)
+  loc_abbrev: LON
+  state: null
+  country: UK
+  region: Non-US
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Dezrika (Dezi)
+    facilitator_email_1: dezrika@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: false
+  - facilitator_name: Stephanie
+    facilitator_email_1: hello@stephsevents.co.uk
+    ig_handle: null
+    tag_on_ig: false
+    is_active: false
+- city_name: Los Angeles
+  loc_abbrev: LA
+  state: CA
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: The Pub at Golden Road - Atwater
+    aliases:
+    - The Pub at Golden Road - Atwater
+    venue_ig_handle_1: null
+    venue_ig_handle_2: null
+    venue_events_site: null
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  - venue_name: Common Space Brewery (Hawthorne)
+    aliases:
+    - Common Space Brewery (Hawthorne)
+    - Common Space Brewery Hawthorne
+    - Common Space Brewery
+    - Common Space
+    venue_ig_handle_1: "@commonspacela"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.commonspace.la/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: carissa@commonspace.la
+    notes: null
+  facilitators:
+  - facilitator_name: Tim
+    tag_on_ig: false
+    facilitator_email_1: huynhtimothyt@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Manchester (UK)
+  loc_abbrev: MAN
+  state: null
+  country: UK
+  region: Non-US
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Jimmy's Manchester
+    aliases:
+    - Jimmy's Manchester
+    - Jimmys Manchester
+    - Jimmy's
+    - Jimmys
+    venue_ig_handle_1: "@jimmys"
+    venue_ig_handle_2: null
+    venue_events_site: https://jimmys.group/manchester/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  facilitators:
+  - facilitator_name: Irene
+    facilitator_email_1: ireneoksen@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: Manchester
+  loc_abbrev: MNH
+  state: NH
+  country: US
+  region: New England
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Harpoon Brewery at Queen City Center
+    venue_ig_handle_1: "@harpoonatqueencity"
+    venue_ig_handle_2: "@harpoonbrewery"
+    venue_events_site: https://harpoonbrewery.com/manchester-brewery/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: sjosephson@harpoon.com
+    notes: null
+- city_name: Nashville
+  loc_abbrev: NSH
+  state: TN
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Crazy Gnome Brewery
+    aliases:
+    - Crazy Gnome Brewery
+    - Crazy Gnome
+    venue_ig_handle_1: "@crazygnomebrewery"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.cgbrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: grayson@cgbrewery.com
+    notes: null
+  - venue_name: The Raven Book Lounge
+    aliases:
+    - The Raven Book Lounge
+    - The Raven
+    venue_ig_handle_1: "@TheRavenBookLounge"
+    venue_ig_handle_2: null
+    venue_events_site: null
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: contact@theravenbooklounge.net [Danniele]
+    notes: null
+  - venue_name: Love and Exile
+    aliases:
+    - Love and Exile
+    - Love & Exile
+    venue_ig_handle_1: "@loveandexilebar"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.loveandexile.bar/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: lilameri@aol.com
+    notes: null
+  facilitators:
+  - facilitator_name: MaKaila
+    tag_on_ig: false
+    facilitator_email_1: mknightallder@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Bre(anna) Clark
+    tag_on_ig: false
+    facilitator_email_1: null
+    ig_handle: null
+    is_active: false
+- city_name: New Haven
+  loc_abbrev: NHV
+  state: CT
+  country: US
+  region: New England
+  time_zone: null
+  website_city_name: Connecticut
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: East Rock Brewing
+    aliases:
+    - East Rock Brewing
+    - East Rock
+    venue_ig_handle_1: "@eastrockbeer"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.eastrockbeer.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: Ali@eastrockbeer.com
+    notes: null
+  - venue_name: Spruce Coffee
+    aliases:
+    - Spruce Coffee
+    - Spruce
+    venue_ig_handle_1: "@sprucecoffeenhv"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.sprucecoffeenhv.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: events@sprucecoffeenhv.com [AJ & Katie]
+    notes: null
+  facilitators:
+  - facilitator_name: Samantha
+    facilitator_email_1: mealsbysami@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: New London
+  loc_abbrev: NLD
+  state: CT
+  country: US
+  region: New England
+  time_zone: null
+  website_city_name: Connecticut
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Tox Brewing Company
+    aliases:
+    - Tox Brewing Company
+    - Tox Brewing
+    - Tox
+    venue_ig_handle_1: "@toxbrewing"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.toxbrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: corey@toxbrewing.com
+    notes: null
+  facilitators:
+  - facilitator_name: Brittni
+    facilitator_email_1: brittnioxendine@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: New York City
+  loc_abbrev: NYC
+  state: NY
+  country: US
+  region: Mid-Atlantic
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Bibliotheque NYC
+    aliases:
+    - Bibliotheque NYC
+    - Bibliotheque
+    venue_ig_handle_1: "@bibliothequenyc"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.bibliothequenyc.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: ajacono@bibliothequenyc.com
+    notes: null
+  - venue_name: McCarren Parkhouse
+    aliases:
+    - McCarren Parkhouse
+    - McCarren
+    venue_ig_handle_1: "@mccarrenparkhouse"
+    venue_ig_handle_2: null
+    venue_events_site: https://mccarrenparkhouse.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  - venue_name: Yu & Me Books
+    aliases:
+    - Yu & Me Books
+    - Yu & Me
+    - Yu and Me Books
+    - Yu and Me
+    venue_ig_handle_1: "@yuandmebooks"
+    venue_ig_handle_2: null
+    venue_events_site: https://yuandmebooks.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: theresa@yuandmebooks.com; kazumi@yuandmebooks.com; yuandmebooks@gmail.com; cj@yuandmebooks.com
+    notes: null
+  facilitators:
+  - facilitator_name: Caitlyn
+    facilitator_email_1: caitlynejones@gmail.com
+    ig_handle: "@caitlyn62442"
+    tag_on_ig: false
+    is_active: true
+  - facilitator_name: Sarah Nemetz
+    facilitator_email_1: sarahnemetz0729@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: false
+  - facilitator_name: Ollie
+    facilitator_email_1: gillett.ollie@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: Oakland
+  loc_abbrev: SF
+  state: CA
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  website_city_name: San Francisco Bay Area
+  venues:
+  - venue_name: Fluid510
+    aliases:
+      - Fluid510
+      - Fluid 510
+    venue_ig_handle_1: "@fluid510"
+    venue_ig_handle_2: null
+    venue_events_site: https://fluid510.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: sean@fluid510.com
+    notes: null
+  - venue_name: Line 51 Brewing
+    aliases:
+    - Line 51 Brewing
+    - Line 51
+    venue_ig_handle_1: "@line51beer"
+    venue_ig_handle_2: null
+    venue_events_site: https://line51beer.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: sarah@line51beer.com
+    notes: null
+- city_name: Philadelphia
+  loc_abbrev: PHL
+  state: PA
+  country: US
+  region: Mid-Atlantic
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Evil Genius Beer Co.
+    aliases:
+    - Evil Genius Beer Co.
+    - Evil Genius Beer Co
+    - Evil Genius Beer
+    - Evil Genius
+    venue_ig_handle_1: "@evilgeniusbeer"
+    venue_ig_handle_2: null
+    venue_events_site: https://evilgeniusbeer.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: rkeller@evilgeniusbeer.com
+    notes: null
+  facilitators:
+  - facilitator_name: Tiffany Coles
+    tag_on_ig: false
+    facilitator_email_1: STSTwithTiff@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Lilly
+    tag_on_ig: false
+    facilitator_email_1: lillianmarie231@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Joshua
+    tag_on_ig: false
+    facilitator_email_1: joshua.taton@radialconsulting.org
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Julie
+    tag_on_ig: false
+    facilitator_email_1: juliescesney@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Portland (ME)
+  loc_abbrev: PWM
+  state: ME
+  country: US
+  region: New England
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+- city_name: Portland (OR)
+  loc_abbrev: PDX
+  state: OR
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: The Heist
+    aliases:
+    - The Heist
+    venue_ig_handle_1: "@theheistpdx"
+    venue_ig_handle_2: null
+    venue_events_site: https://theheistpdx.com/#events
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  - venue_name: Migration Brewing (Williams)
+    aliases:
+    - Migration Brewing (Williams)
+    - Migration Brewing - Williams
+    - Migration Brewing Williams
+    venue_ig_handle_1: "@migrationbrewing"
+    venue_ig_handle_2: null
+    venue_events_site: https://migrationbrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: cody@migrationbrewing.com; colin@migrationbrewing.com; Nick@migrationbrewing.com
+    notes: null
+  - venue_name: Migration Brewing - Glisan
+    aliases:
+    - Migration Brewing - Glisan
+    - Migration Brewing (Glisan)
+    - Migration Brewing Glisan
+    venue_ig_handle_1: "@migrationbrewing"
+    venue_ig_handle_2: null
+    venue_events_site: https://migrationbrewing.com/pubs/glisan-brewpub/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  - venue_name: Powell's City of Books
+    aliases:
+    - Powell's City of Books
+    - Powells City of Books
+    - Powell's
+    - Powells
+    venue_ig_handle_1: "@powellsbooks"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.powells.com/events
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: cassie.phegley@powells.com; bryanne.hoeg@powells.com
+    notes: null
+  facilitators:
+  - facilitator_name: Lexi
+    facilitator_email_1: tottenalexisb@gmail.com
+    ig_handle: "@lexitotten"
+    tag_on_ig: false
+    is_active: true
+- city_name: Providence
+  loc_abbrev: PVD
+  state: RI
+  country: US
+  region: New England
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Long Live Beerworks
+    aliases:
+    - Long Live Beerworks
+    - Long Live
+    venue_ig_handle_1: "@longlivebeerworks"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.longlivebeerworks.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: longlivebeerevents@gmail.com; veronica@longlivebeerworks.com
+    notes: null
+  - venue_name: Narragansett Brewery
+    aliases:
+    - Narragansett Brewery
+    - Narragansett
+    - Gansett
+    venue_ig_handle_1: "@gansettbeerpvd"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.narragansettbeer.com/pages/providence-brewery
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: events@narragansettbeer.com
+    notes: null
+  facilitators:
+  - facilitator_name: Erin
+    tag_on_ig: false
+    facilitator_email_1: erinmperfect@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Salena
+    tag_on_ig: false
+    facilitator_email_1: salenajdeane@gmail.com
+    ig_handle: "@sjdeane109"
+    is_active: false
+  - facilitator_name: Sadé
+    tag_on_ig: false
+    facilitator_email_1: ratliffsfx@gmail.com 
+    ig_handle: null
+    is_active: true
+- city_name: Raleigh
+  loc_abbrev: RAL
+  state: NC
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Crank Arm Brewing Raleigh
+    aliases:
+    - Crank Arm Brewing Raleigh
+    - Crank Arm Brewing
+    - Crank Arm
+    venue_ig_handle_1: "@CRANKARMBREW"
+    venue_ig_handle_2: "@CRANKARMRALEIGH"
+    venue_events_site: https://crankarmbrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: AMANDA@CRANKARMBREWING.COM
+    notes: null
+  facilitators:
+  - facilitator_name: Zana
+    facilitator_email_1: znhicks94@gmail.com
+    facilitator_email_2: hickszn@guilford.edu
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: Richmond
+  loc_abbrev: RVA
+  state: VA
+  country: US
+  region: South
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Triple Crossing (Fulton)
+    aliases:
+    - Triple Crossing (Fulton)
+    - Triple Crossing - Fulton
+    - Triple Crossing Fulton
+    venue_ig_handle_1: "@triplecrossing"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.triplecrossing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  facilitators:
+  - facilitator_name: Emma
+    facilitator_email_1: emmagleckel1@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: true
+- city_name: San Diego
+  loc_abbrev: SD
+  state: CA
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Stone Brewing (Liberty Station)
+    aliases:
+    - Stone Brewing (Liberty Station)
+    - Stone Brewing Liberty Station
+    - Stone Brewing
+    venue_ig_handle_1: "@stonelibertystation"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.stonebrewing.com/visit/bistros/liberty-station
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: Lanie.Woods@sapporo-stonebrewing.com
+    notes: null
+  facilitators:
+  - facilitator_name: Gabriela (Gabby)
+    tag_on_ig: false
+    facilitator_email_1: gabbykuran@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: San Francisco Bay Area
+  loc_abbrev: SF
+  state: CA
+  country: US
+  region: West
+  time_zone: null
+  website_city_name: San Francisco Bay Area
+  has_dedicated_ig: false
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Mahogney
+    tag_on_ig: false
+    facilitator_email_1: mahogneyht@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Seattle
+  loc_abbrev: SEA
+  state: WA
+  country: US
+  region: West
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Reuben's Brews (Downtown)
+    aliases:
+    - Reuben's Brews (Downtown)
+    - Reuben's Brews - Downtown
+    - Reuben's Brews Downtown
+    - Reuben's Brews
+    - Reuben's
+    - Reubens Brews (Downtown)
+    - Reubens Brews - Downtown
+    - Reubens Brews Downtown
+    - Reubens Brews
+    - Reubens
+    venue_ig_handle_1: "@reubensbrews"
+    venue_ig_handle_2: null
+    venue_events_site: https://reubensbrews.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: derek.nathan@reubensbrews.com
+    notes: null
+  facilitators:
+  - facilitator_name: Daniela B.
+    tag_on_ig: false
+    facilitator_email_1: db.interculturalcoach@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Somerville
+  loc_abbrev: BOS
+  state: MA
+  country: US
+  region: New England
+  time_zone: null
+  website_city_name: Boston
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: Aeronaut
+    venue_ig_handle_1: "@aeronautbrewing"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.aeronautbrewing.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: dchungi@aeronaut.net
+    notes: null
+  facilitators:
+  - facilitator_name: Ashley
+    tag_on_ig: false
+    facilitator_email_1: ashley@skipthesmalltalk.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Stacy
+    tag_on_ig: false
+    facilitator_email_1: stacystraaberg@gmail.com
+    facilitator_email_2: Stacy.STST@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Samantha
+    tag_on_ig: false
+    facilitator_email_1: sammialicelee@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Emily
+    tag_on_ig: false
+    facilitator_email_1: emily.faber94@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Christina
+    tag_on_ig: false
+    facilitator_email_1: chalsted.stst@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Rachel K.
+    tag_on_ig: false
+    facilitator_email_1: rdkallus@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Becky
+    tag_on_ig: false
+    facilitator_email_1: rebeccah.lipson212@gmail.com
+    ig_handle: null
+    is_active: false
+  - facilitator_name: Eden
+    tag_on_ig: false
+    facilitator_email_1: Eden.pletner@mail.mcgill.ca
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Nora
+    tag_on_ig: false
+    facilitator_email_1: nmally712@gmail.com
+    ig_handle: null
+    is_active: true
+- city_name: Toronto (CA)
+  loc_abbrev: TOR
+  state: null
+  country: CA
+  region: Non-US
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  facilitators:
+  - facilitator_name: Rohan
+    facilitator_email_1: rohannoronha99@gmail.com
+    ig_handle: null
+    tag_on_ig: false
+    is_active: false
+- city_name: Washington DC
+  loc_abbrev: DC
+  state: DC
+  country: US
+  region: Mid-Atlantic
+  time_zone: null
+  has_dedicated_ig: true
+  ig_handle: null
+  venues:
+  - venue_name: DC Brau Brewing
+    aliases:
+    - DC Brau Brewing
+    venue_ig_handle_1: "@dcbrau"
+    venue_ig_handle_2: null
+    venue_events_site: null
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  - venue_name: Tonic
+    venue_ig_handle_1: "@tonicatquigleys"
+    venue_ig_handle_2: null
+    venue_events_site: https://tonicrestaurantdc.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: events.tonic@gmail.com
+    notes: null
+  - venue_name: metrobar DC
+    aliases:
+    - metrobar DC
+    - metrobar
+    venue_ig_handle_1: "@metrobardc"
+    venue_ig_handle_2: null
+    venue_events_site: https://metrobardc.com/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: john@metrobardc.com; jesse@metrobardc.com; roger@metrobardc.com
+    notes: null
+  - venue_name: Dacha Navy Yard
+    aliases:
+    - Dacha Navy Yard
+    - Dacha
+    venue_ig_handle_1: "@dachanavyyard"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.dachabeergarden.com/navy-yard/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: "[Galen] ggossman@dachadc.com"
+    notes: null
+  facilitators:
+  - facilitator_name: Emma
+    tag_on_ig: false
+    facilitator_email_1: emmagleckel1@gmail.com
+    ig_handle: null
+    is_active: true
+  - facilitator_name: Alesia
+    tag_on_ig: false
+    facilitator_email_1: smithalesia0@gmail.com
+    ig_handle: "@asmith4u2c"
+    is_active: true
+- city_name: Online
+  loc_abbrev: ONL
+  state: null
+  country: US
+  region: null
+  time_zone: null
+  has_dedicated_ig: false
+  ig_handle: null
+  venues:
+  - venue_name: Online
+    aliases:
+    - Online
+    venue_ig_handle_1: null
+    venue_ig_handle_2: null
+    venue_events_site: null
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: null
+    notes: null
+  facilitators:
+  - facilitator_name: Anna
+    tag_on_ig: false
+    facilitator_email_1: anna.skipthesmalltalk@gmail.com
+    ig_handle: "@annachalf"
+    is_active: true
+tags:
+- tag_name: 20s
+  tag_category: age_group
+- tag_name: 30s
+  tag_category: age_group
+- tag_name: Millennials
+  tag_category: age_group
+- tag_name: BIPOC
+  tag_category: affinity
+- tag_name: LGBTQIA+
+  tag_category: affinity
+- tag_name: Bi & Pan
+  tag_category: affinity
+- tag_name: Poly
+  tag_category: affinity
+- tag_name: Monogamous
+  tag_category: affinity
+- tag_name: Ace-Spectrum
+  tag_category: affinity
+- tag_name: Women
+  tag_category: affinity
+- tag_name: Online
+  tag_category: format
+- tag_name: sold out
+  tag_category: status

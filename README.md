@@ -118,7 +118,7 @@ erDiagram
     city {
         int city_id PK
         text city_name
-        text city_abbrev
+        text loc_abbrev
         text state
         text country
         text region
