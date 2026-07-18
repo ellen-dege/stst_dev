@@ -51,7 +51,7 @@ cities:
   country: US
   region: Mid-Atlantic
   time_zone: null
-  has_dedicated_ig: true
+  has_dedicated_ig: false
   ig_handle: null
   venues:
   - venue_name: Checkerspot Brewing Co.
@@ -97,7 +97,7 @@ cities:
   time_zone: null
   website_city_name: Boston
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_bos
   venues:
   - venue_name: Mighty Squirrel Taproom & Kitchen (Fenway)
     aliases:
@@ -187,7 +187,22 @@ cities:
   region: West
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_co
+  venues:
+  - venue_name: Upslope Brewing Company
+    aliases:
+    - Upslope Brewing Company
+    - Upslope Brewing Company Flatiron Court
+    - Upslope Brewing Company Flatiron Park
+    - Upslope Brewing
+    - Upslope
+    venue_ig_handle_1: "@upslope"
+    venue_ig_handle_2: null
+    venue_events_site: https://upslopebrewing.com/events/
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: "[Shelby Hartsock] events@upslopebrewing.com"
+    notes: null
   facilitators:
   - facilitator_name: Ellen
     tag_on_ig: false
@@ -201,7 +216,7 @@ cities:
   country: UK
   region: Non-US
   time_zone: null
-  has_dedicated_ig: true
+  has_dedicated_ig: false
   ig_handle: null
   facilitators:
   - facilitator_name: Roisin
@@ -231,7 +246,7 @@ cities:
   time_zone: null
   website_city_name: Boston
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_bos
   venues:
   - venue_name: McCarthy's and Toad
     aliases:
@@ -301,7 +316,7 @@ cities:
   region: South
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_nc
   venues:
   - venue_name: Heist Brewery and Barrel Arts
     aliases:
@@ -333,7 +348,7 @@ cities:
   region: Midwest
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_chi
   venues:
   - venue_name: kibbitznest
     venue_ig_handle_1: "@kibbitznest"
@@ -361,7 +376,7 @@ cities:
   region: West
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_co
   venues:
   - venue_name: Town Hall Collaborative
     aliases:
@@ -408,7 +423,7 @@ cities:
   region: South
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_nc
   venues:
   - venue_name: Redhead Hemp
     aliases:
@@ -489,6 +504,19 @@ cities:
     venue_fb: null
     venue_contact_emails: "[Alycia] rovner@shortpathdistillery.com"
     notes: null
+  - venue_name: Park-9 Dog Bar
+    aliases:
+    - Park-9 Dog Bar
+    - Park-9
+    - Park9
+    - Park 9
+    venue_ig_handle_1: "@park9dogbar"
+    venue_ig_handle_2: null
+    venue_events_site: https://www.park9dogbar.com/events
+    venue_address: null
+    venue_fb: null
+    venue_contact_emails: gigi@park9dogbar.com
+    notes: null
 - city_name: London (UK)
   loc_abbrev: LON
   state: null
@@ -515,7 +543,7 @@ cities:
   region: West
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_la
   venues:
   - venue_name: The Pub at Golden Road - Atwater
     aliases:
@@ -717,7 +745,7 @@ cities:
   region: Mid-Atlantic
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_nyc
   venues:
   - venue_name: Bibliotheque NYC
     aliases:
@@ -782,8 +810,8 @@ cities:
   venues:
   - venue_name: Fluid510
     aliases:
-      - Fluid510
-      - Fluid 510
+    - Fluid510
+    - Fluid 510
     venue_ig_handle_1: "@fluid510"
     venue_ig_handle_2: null
     venue_events_site: https://fluid510.com/
@@ -970,7 +998,7 @@ cities:
   region: South
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_nc
   venues:
   - venue_name: Crank Arm Brewing Raleigh
     aliases:
@@ -1102,7 +1130,7 @@ cities:
   time_zone: null
   website_city_name: Boston
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_bos
   venues:
   - venue_name: Aeronaut
     venue_ig_handle_1: "@aeronautbrewing"
@@ -1180,7 +1208,7 @@ cities:
   region: Mid-Atlantic
   time_zone: null
   has_dedicated_ig: true
-  ig_handle: null
+  ig_handle: skipthesmalltalk_dc
   venues:
   - venue_name: DC Brau Brewing
     aliases:

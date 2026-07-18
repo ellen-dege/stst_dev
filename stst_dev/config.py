@@ -84,10 +84,14 @@ SOCIAL_MEDIA_TASK_TYPES = [
 ]
 
 # Selenium configuration
-SELENIUM_TIMEOUT = 10  # seconds
+SELENIUM_TIMEOUT = 10       # seconds — WebDriverWait element-presence timeout
+PAGE_LOAD_TIMEOUT = 60      # seconds — max time to wait for a full page load
 CHROME_OPTIONS = [
-    "--headless",
+    "--headless=new",                          # replaces deprecated --headless in Chrome 112+
     "--no-sandbox",
     "--disable-dev-shm-usage",
     "--disable-gpu",
+    "--disable-background-timer-throttling",   # prevent JS timer stalls in headless
+    "--disable-renderer-backgrounding",
+    "--blink-settings=imagesEnabled=false",    # skip image downloads, speeds up rendering
 ]

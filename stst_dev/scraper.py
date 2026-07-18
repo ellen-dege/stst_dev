@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -15,6 +16,7 @@ from .config import (
     CHROME_OPTIONS,
     CSS_SELECTORS,
     EVENT_TYPES,
+    PAGE_LOAD_TIMEOUT,
     SALE_OPTIONS,
     SELENIUM_TIMEOUT,
     SKIP_TITLES,
@@ -43,12 +45,13 @@ def get_chrome_driver(headless: bool = True) -> webdriver.Chrome:
         Configured Chrome WebDriver instance.
     """
     options = Options()
+    # Return as soon as DOMContentLoaded fires — don't wait for analytics/tracking scripts
+    options.page_load_strategy = "eager"
 
     if headless:
         for opt in CHROME_OPTIONS:
             options.add_argument(opt)
 
-    # Use webdriver-manager to automatically download/manage ChromeDriver
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=options)
 
@@ -337,13 +340,18 @@ def scrape_events(
     try:
         logger.info(f"Starting scrape of {url}")
         driver = get_chrome_driver(headless=headless)
+        driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
 
-        # Load the page
-        driver.get(url)
+        # Load the page — catch renderer/timeout errors and attempt to scrape
+        # whatever content has already loaded (event cards are server-rendered)
+        try:
+            driver.get(url)
+        except (TimeoutException, WebDriverException) as e:
+            logger.warning(f"Page load incomplete: {e}. Attempting to scrape available content.")
 
-        # Wait for the body to load
+        # Wait for event cards — confirms server-rendered content is present
         WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".summary-item"))
         )
 
         # Find event cards (each .summary-item contains one event)
@@ -429,7 +437,7 @@ def scrape_events(
             (i, ev) for i, ev in enumerate(events) if not ev.start_time and ev.link
         ]
         if missing:
-            driver.set_page_load_timeout(30)
+            driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
             logger.info(
                 f"Fetching start times from {len(missing)} individual event page(s)"
             )
